@@ -35,7 +35,9 @@ BASE_APPS = [
     'django.contrib.gis'
 ]
 
-LOCAL_APPS = []
+LOCAL_APPS = [
+    'apps.users.apps.UsersConfig'
+]
 
 THIRD_APPS = [
     'rest_framework',
@@ -142,3 +144,6 @@ LOGGING = {
         }
     }
 }
+
+#usermodel
+AUTH_USER_MODEL = "users.User"
