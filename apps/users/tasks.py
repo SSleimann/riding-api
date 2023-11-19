@@ -9,6 +9,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy
 
+from oauth2_provider.models import clear_expired
+
 from apps.users.security import create_jwt_token
 
 logger = logging.getLogger(__name__)
@@ -48,3 +50,9 @@ def send_verification_email(self, user_pk):
     logger.info("Email sent to {}".format(user.email))
 
     return "Email Sent"
+
+@shared_task
+def clear_expired_tokens():
+    clear_expired()
+    
+    return "Expired tokens cleared"

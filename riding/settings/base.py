@@ -3,6 +3,8 @@ import environ
 
 from pathlib import Path
 
+from celery.schedules import crontab
+
 env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -164,6 +166,16 @@ CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 5 * 60
+CELERY_ACCEPT_CONTENT = ['json', 'msgpack', 'yaml']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+CELERY_BEAT_SCHEDULE = {
+      'clear_expired_tokens': {
+        'task': 'apps.users.tasks.clear_expired_tokens',
+        'schedule': 7200,
+    },
+}
 
 # JWT
 JWT_SECRET_KEY = env(

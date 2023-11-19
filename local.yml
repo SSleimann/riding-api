@@ -6,13 +6,15 @@ services:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
     container_name: riding-django
-    command: /start
+    command: ./start
     env_file:
       - ./.envs/.local/.django
+      - ./.envs/.local/.postgis
     ports:
       - "8000:8000"
     depends_on:
       - postgis
+      - redis
     
   postgis:
     image: postgis/postgis
@@ -26,4 +28,31 @@ services:
     image: redis
     container_name: riding-redis
 
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    container_name: riding-celery-worker
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgis
+    depends_on:
+      - redis
+      - riding
+    command: ./start_celery_worker
+  
+  celery_beat:
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    container_name: riding-celery-beat
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgis
+    depends_on:
+      - redis
+      - riding
+    command: ./start_celery_beat
 
+volumes:
+  postgres_data:
