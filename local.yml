@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  riding:
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    container_name: riding-django
+    command: /start
+    env_file:
+      - ./.envs/.local/.django
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgis
+    
+  postgis:
+    image: postgis/postgis
+    env_file:
+      - ./.envs/.local/.postgis
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    container_name: riding-postgisdb
+
+  redis:
+    image: redis
+    container_name: riding-redis
+
+

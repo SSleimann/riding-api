@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "riding_app"
+version = "1.0"
+authors = [
+  { name="Sleiman Orocua", email="sleimanjose23@hotmail.com" },
+]
+dependencies = [
+  "black",
+  "django",
+  "djangorestframework",
+  "psycopg2",
+  "django-filter",
+  "drf-yasg",
+  "python-jose[cryptography]",
+  "Celery",
+  "redis",
+  "django-oauth-toolkit"
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310", "py311"]
+include = '\.pyi?$'

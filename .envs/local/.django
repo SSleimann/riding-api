@@ -1,2 +1,0 @@
-DJANGO_DEBUG=True
-DATABASE_URL=postgis://user:password@localhost:5432/riding
