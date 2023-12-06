@@ -208,8 +208,8 @@ SPECTACULAR_SETTINGS = {
     "OAUTH2_TOKEN_URL": reverse_lazy("oauth2_provider:token"),
     "OAUTH2_REFRESH_URL": reverse_lazy("oauth2_provider:token"),
     "SERVE_PUBLIC": False,
-    'SWAGGER_UI_SETTINGS': {
+    "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
-        'persistAuthorization': True,
+        "persistAuthorization": True,
     },
 }

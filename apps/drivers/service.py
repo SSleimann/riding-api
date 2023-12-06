@@ -4,17 +4,19 @@ from apps.drivers.models import Drivers
 from apps.drivers.exceptions import (
     DriverDoesNotHaveVehiclesException,
     DriverIsActiveException,
-    DriverDoesNotExist
+    DriverDoesNotExist,
 )
+
 
 def get_driver_by_user_id(user_id: UUID) -> Drivers:
     try:
         driver = Drivers.objects.get(user__id=user_id)
     except Drivers.DoesNotExist:
         raise DriverDoesNotExist
-    
+
     return driver
-    
+
+
 def set_user_driver_active(user_id: UUID) -> Drivers:
     driver = get_driver_by_user_id(user_id)
 

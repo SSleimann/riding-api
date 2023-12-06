@@ -8,7 +8,11 @@ from oauth2_provider.contrib.rest_framework.permissions import TokenHasReadWrite
 
 from drf_spectacular.utils import extend_schema
 
-from apps.drivers.service import set_user_driver_active, set_user_driver_inactive, get_driver_by_user_id
+from apps.drivers.service import (
+    set_user_driver_active,
+    set_user_driver_inactive,
+    get_driver_by_user_id,
+)
 from apps.drivers.api.serializers.driver_serializer import (
     DriverSerializer,
     CreateDriverSerializer,
@@ -20,9 +24,7 @@ class CreateDriverApiView(APIView):
     permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
 
     @extend_schema(
-        request=None,
-        responses={200: DriverSerializer},
-        description="Create driver"
+        request=None, responses={200: DriverSerializer}, description="Create driver"
     )
     def post(self, request):
         data = {"user": request.user.id}
@@ -56,12 +58,11 @@ class DriverMeInfoApiView(APIView):
     @extend_schema(
         responses={200: DriverSerializer},
         description="Get driver me info",
-    
     )
     def get(self, request):
         user_id = request.user.id
         driver = get_driver_by_user_id(user_id)
-        
+
         serializer = DriverSerializer(driver)
 
         return Response(data=serializer.data, status=status.HTTP_200_OK)
