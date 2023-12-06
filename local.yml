@@ -9,7 +9,6 @@ services:
     command: ./start
     env_file:
       - ./.envs/.local/.django
-      - ./.envs/.local/.postgis
     ports:
       - "8000:8000"
     depends_on:
@@ -21,7 +20,7 @@ services:
     env_file:
       - ./.envs/.local/.postgis
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - riding_postgres_data:/var/lib/postgresql/data/
     container_name: riding-postgisdb
 
   redis:
@@ -35,7 +34,6 @@ services:
     container_name: riding-celery-worker
     env_file:
       - ./.envs/.local/.django
-      - ./.envs/.local/.postgis
     depends_on:
       - redis
       - riding
@@ -48,11 +46,10 @@ services:
     container_name: riding-celery-beat
     env_file:
       - ./.envs/.local/.django
-      - ./.envs/.local/.postgis
     depends_on:
       - redis
       - riding
     command: ./start_celery_beat
 
 volumes:
-  postgres_data:
+  riding_postgres_data:

@@ -51,8 +51,9 @@ def send_verification_email(self, user_pk):
 
     return "Email Sent"
 
+
 @shared_task
 def clear_expired_tokens():
     clear_expired()
-    
+
     return "Expired tokens cleared"

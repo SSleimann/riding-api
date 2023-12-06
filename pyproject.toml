@@ -14,11 +14,14 @@ dependencies = [
   "djangorestframework",
   "psycopg2",
   "django-filter",
-  "drf-yasg",
+  "bcrypt",
+  "drf-spectacular",
   "python-jose[cryptography]",
   "Celery",
   "redis",
-  "django-oauth-toolkit"
+  "django-oauth-toolkit",
+  "django-environ",
+  "django-extensions"
 ]
 
 [tool.black]

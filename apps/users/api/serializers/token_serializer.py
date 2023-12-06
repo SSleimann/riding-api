@@ -19,10 +19,10 @@ class TokenVerificationSerializer(Serializer):
 
         if payload is None:
             raise serializers.ValidationError({"token": _("The token is invalid.")})
-        
+
         if payload.get("type", None) != "_email_confirmation":
             raise serializers.ValidationError({"token": _("The token is invalid.")})
-        
+
         if payload.get("user_username", None) is None:
             raise serializers.ValidationError({"token": _("The token is invalid.")})
 
@@ -33,9 +33,6 @@ class TokenVerificationSerializer(Serializer):
     def save(self, **kwargs):
         payload = self.context["payload"]
         user = get_user_model().objects.get(username=payload.get("user_username", None))
-
-        user.is_verified = True
-
-        user.save()
+        user.set_verified()
 
         return user

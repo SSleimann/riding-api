@@ -60,7 +60,7 @@ class TokenVerificationSerializerTestCase(TestCase):
             "password": "testpass12345",
             "first_name": "test",
             "last_name": "test",
-            "is_active": False
+            "is_active": False,
         }
         self.user = get_user_model().objects.create_user(**payload)
 
@@ -75,7 +75,7 @@ class TokenVerificationSerializerTestCase(TestCase):
         serializer = TokenVerificationSerializer(data=payload)
         serializer.is_valid()
         u = serializer.save()
-        
+
         self.assertEqual(u.username, self.user.username)
         self.assertTrue(u.is_verified)
 

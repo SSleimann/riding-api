@@ -3,7 +3,7 @@ import environ
 
 from pathlib import Path
 
-from celery.schedules import crontab
+from django.urls import reverse_lazy
 
 env = environ.Env()
 
@@ -43,13 +43,13 @@ BASE_APPS = [
     "django.contrib.gis",
 ]
 
-LOCAL_APPS = ["apps.users.apps.UsersConfig"]
+LOCAL_APPS = ["apps.users.apps.UsersConfig", "apps.drivers.apps.DriversConfig"]
 
 THIRD_APPS = [
     "rest_framework",
     "django_filters",
-    "drf_yasg",
-    "oauth2_provider"
+    "oauth2_provider",
+    "drf_spectacular",
 ]
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
@@ -166,14 +166,14 @@ CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 5 * 60
-CELERY_ACCEPT_CONTENT = ['json', 'msgpack', 'yaml']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ["json", "msgpack", "yaml"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
 
 CELERY_BEAT_SCHEDULE = {
-      'clear_expired_tokens': {
-        'task': 'apps.users.tasks.clear_expired_tokens',
-        'schedule': 7200,
+    "clear_expired_tokens": {
+        "task": "apps.users.tasks.clear_expired_tokens",
+        "schedule": 7200,
     },
 }
 
@@ -186,13 +186,30 @@ JWT_SECRET_KEY = env(
 # smtp
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-#rest framework
+# rest framework
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-    )
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 OAUTH2_PROVIDER = {
-    'OAUTH2_VALIDATOR_CLASS': 'apps.users.oauth2_validator.CustomOAuth2Validator'
+    "OAUTH2_VALIDATOR_CLASS": "apps.users.oauth2_validator.CustomOAuth2Validator"
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Riding API",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "CONTACT": {"email": "sleimanjose23@hotmail.com"},
+    "OAUTH2_FLOWS": ["password"],
+    "OAUTH2_AUTHORIZATION_URL": reverse_lazy("oauth2_provider:authorize"),
+    "OAUTH2_TOKEN_URL": reverse_lazy("oauth2_provider:token"),
+    "OAUTH2_REFRESH_URL": reverse_lazy("oauth2_provider:token"),
+    "SERVE_PUBLIC": False,
+    'SWAGGER_UI_SETTINGS': {
+        "deepLinking": True,
+        'persistAuthorization': True,
+    },
 }

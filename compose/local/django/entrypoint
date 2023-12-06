@@ -12,14 +12,20 @@ python << END
 import sys
 
 import psycopg2
+from urllib.parse import urlparse
+
+url = urlparse("${DATABASE_URL}")
+connection = {
+    "dbname": url.path[1:],
+    "user": url.username,
+    "password": url.password,
+    "port": url.port,
+    "host": url.hostname,
+}
 
 try:
     psycopg2.connect(
-        dbname="${POSTGRES_DB}",
-        user="${POSTGRES_USER}",
-        password="${POSTGRES_PASSWORD}",
-        port=5432,
-        host="postgis"
+        **connection
     )
 except psycopg2.OperationalError:
     sys.exit(-1)

@@ -42,7 +42,7 @@ class User(AbstractUser):
 
     first_name = CharField(_("first name"), max_length=150)
     last_name = CharField(_("last name"), max_length=150)
-    
+
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
@@ -51,6 +51,10 @@ class User(AbstractUser):
 
     def get_short_name(self) -> str:
         return self.username
+
+    def set_verified(self) -> None:
+        self.is_verified = True
+        self.save(update_fields=["is_verified"])
 
     def __str__(self) -> str:
         return "User: {username}".format(username=self.username)
