@@ -62,6 +62,7 @@ class SetUserDriverActiveServiceTestCase(TestCase):
 
         driver = set_user_driver_active(self.user.id)
 
+        self.assertTrue(mock_has_vehicles.called)
         self.assertTrue(driver.is_active)
 
     def test_driver_doesnt_exist(self):
@@ -86,6 +87,7 @@ class SetUserDriverActiveServiceTestCase(TestCase):
         with self.assertRaises(DriverDoesNotHaveVehiclesException):
             set_user_driver_active(self.user.id)
 
+        self.assertTrue(mock_has_vehicles.called)
         self.assertFalse(self.driver.is_active)
 
 

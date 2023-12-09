@@ -2,7 +2,17 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework.exceptions import APIException
 
+# Model exceptions
+class BaseException(Exception):
+    msg: str = "Error"
+    
+    def __init__(self) -> None:
+        super().__init__(self.msg)
+    
+class TooManyVehiclesException(Exception):
+    msg: str = _("Maximum only two vehicles")
 
+# Api exceptions
 class DriverDoesNotExist(APIException):
     status_code = 400
     default_detail = _("The driver does not exists.")
