@@ -10,11 +10,11 @@ class BaseException(Exception):
         super().__init__(self.msg)
     
 class TooManyVehiclesException(Exception):
-    msg: str = _("Maximum only two vehicles")
+    msg: str = _("Maximum only two vehicles.")
 
 # Api exceptions
-class DriverDoesNotExist(APIException):
-    status_code = 400
+class DriverDoesNotExistException(APIException):
+    status_code = 404
     default_detail = _("The driver does not exists.")
     default_code = "driver_error"
 
@@ -29,3 +29,8 @@ class DriverIsActiveException(APIException):
     status_code = 400
     default_detail = _("The driver is active.")
     default_code = "driver_error"
+
+class VehicleDoesNotExistsException(APIException):
+    status_code = 404
+    default_detail = _("The vehicle does not exists.")
+    default_code = "vehicle_error"

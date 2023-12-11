@@ -18,7 +18,7 @@ class DriverSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_user(self, obj):
-        return obj.user.username
+        return obj.driver_name
 
 
 class CreateDriverSerializer(serializers.ModelSerializer):

@@ -1,10 +1,11 @@
 from uuid import UUID
 
-from apps.drivers.models import Drivers
+from apps.drivers.models import Drivers, Vehicles
 from apps.drivers.exceptions import (
     DriverDoesNotHaveVehiclesException,
     DriverIsActiveException,
-    DriverDoesNotExist,
+    DriverDoesNotExistException,
+    VehicleDoesNotExistsException,
 )
 
 
@@ -12,7 +13,7 @@ def get_driver_by_user_id(user_id: UUID) -> Drivers:
     try:
         driver = Drivers.objects.get(user__id=user_id)
     except Drivers.DoesNotExist:
-        raise DriverDoesNotExist
+        raise DriverDoesNotExistException
 
     return driver
 
@@ -39,3 +40,9 @@ def set_user_driver_inactive(user_id: UUID) -> Drivers:
         driver.set_inactive()
 
     return driver
+
+def delete_vehicle_by_id(vehicle_id: UUID) -> None:
+    try:
+        Vehicles.objects.get(id=vehicle_id).delete()
+    except Vehicles.DoesNotExist:
+        raise VehicleDoesNotExistsException

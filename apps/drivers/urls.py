@@ -1,6 +1,6 @@
 from django.urls import path
 
-from apps.drivers.api.views import (
+from apps.drivers.api.views.drivers_views import (
     ActivateDriverApiView,
     InactiveDriverApiView,
     DriverInfoApiView,

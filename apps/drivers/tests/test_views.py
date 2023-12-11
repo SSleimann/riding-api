@@ -73,7 +73,7 @@ class CreateDriverApiViewTestCase(BaseViewTestCase):
         driver = get_driver_by_user_id(self.user.id)
 
         self.assertEqual(res.status_code, 201)
-        self.assertEqual(res.data["user"], self.user.username)
+        self.assertEqual(res.data["user"], self.user.get_full_name())
         self.assertTrue(driver)
         self.assertEqual(driver.user, self.user)
         self.assertEqual(res.data["is_active"], False)
@@ -88,7 +88,7 @@ class DriverInfoApiViewTestCase(ViewDriverTestCase):
         res = self.client.get(url, headers={"Authorization": self.authorization})
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.data["user"], self.user.username)
+        self.assertEqual(res.data["user"], self.user.get_full_name())
         self.assertEqual(res.data["is_active"], False)
 
 
@@ -99,7 +99,7 @@ class DriverMeInfoApiViewTestCase(ViewDriverTestCase):
         res = self.client.get(url, headers={"Authorization": self.authorization})
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.data["user"], self.user.username)
+        self.assertEqual(res.data["user"], self.user.get_full_name())
         self.assertEqual(res.data["is_active"], False)
 
 
@@ -113,7 +113,7 @@ class ActivateDriverApiViewTestCase(ViewDriverTestCase):
         res = self.client.put(url, headers={"Authorization": self.authorization})
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.data["user"], self.user.username)
+        self.assertEqual(res.data["user"], self.user.get_full_name())
         self.assertEqual(res.data["is_active"], True)
 
 
@@ -128,5 +128,5 @@ class InactiveDriverApiViewTestCase(ViewDriverTestCase):
         res = self.client.put(url, headers={"Authorization": self.authorization})
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.data["user"], self.user.username)
+        self.assertEqual(res.data["user"], self.user.get_full_name())
         self.assertEqual(res.data["is_active"], False)

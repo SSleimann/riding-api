@@ -5,16 +5,18 @@ from uuid import uuid4
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
-from apps.drivers.models import Drivers
+from apps.drivers.models import Drivers, Vehicles
 from apps.drivers.service import (
     set_user_driver_active,
     set_user_driver_inactive,
     get_driver_by_user_id,
+    delete_vehicle_by_id
 )
 from apps.drivers.exceptions import (
-    DriverDoesNotExist,
+    DriverDoesNotExistException,
     DriverDoesNotHaveVehiclesException,
     DriverIsActiveException,
+    VehicleDoesNotExistsException
 )
 
 USER_MODEL = get_user_model()
@@ -39,7 +41,7 @@ class GetDriverByUserIdServiceTestCase(TestCase):
         self.assertEqual(driver.id, self.driver.id)
 
     def test_driver_doesnt_exist(self):
-        with self.assertRaises(DriverDoesNotExist):
+        with self.assertRaises(DriverDoesNotExistException):
             get_driver_by_user_id(uuid4())
 
 
@@ -66,7 +68,7 @@ class SetUserDriverActiveServiceTestCase(TestCase):
         self.assertTrue(driver.is_active)
 
     def test_driver_doesnt_exist(self):
-        with self.assertRaises(DriverDoesNotExist):
+        with self.assertRaises(DriverDoesNotExistException):
             set_user_driver_active(uuid4())
 
         self.assertFalse(self.driver.is_active)
@@ -109,7 +111,34 @@ class SetUserDriverInactiveTestCase(TestCase):
         self.assertFalse(driver.is_active)
 
     def test_driver_doesnt_exist(self):
-        with self.assertRaises(DriverDoesNotExist):
+        with self.assertRaises(DriverDoesNotExistException):
             set_user_driver_inactive(uuid4())
 
         self.assertTrue(self.driver.is_active)
+
+class DeleteVehicleByIdTestCase(TestCase):
+    def setUp(self):
+        self.user = USER_MODEL.objects.create_user(
+            username="te122stpepe",
+            email="trest21@gmail.com",
+            password="testpass12345",
+            first_name="test",
+            last_name="test",
+            is_active=True,
+        )
+        self.driver = Drivers.objects.create(user=self.user, is_active=True)
+        self.vehicle = Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
+    
+    def test_delete_vehicle(self):
+        vehicle_id = self.vehicle.id
+        
+        self.assertTrue(Vehicles.objects.filter(id=vehicle_id).exists())
+        
+        delete_vehicle_by_id(vehicle_id)
+        
+        self.assertFalse(Vehicles.objects.filter(id=vehicle_id).exists())
+    
+    def test_delete_vehicle_does_not_exist(self):
+        with self.assertRaises(VehicleDoesNotExistsException):
+            delete_vehicle_by_id(uuid4())
+        
