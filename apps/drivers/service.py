@@ -41,8 +41,8 @@ def set_user_driver_inactive(user_id: UUID) -> Drivers:
 
     return driver
 
-def delete_vehicle_by_id(vehicle_id: UUID) -> None:
+def delete_vehicle_by_id_and_driver_id(vehicle_id: UUID, driver_id: UUID) -> None:
     try:
-        Vehicles.objects.get(id=vehicle_id).delete()
+        Vehicles.objects.get(id=vehicle_id, driver__id=driver_id).delete()
     except Vehicles.DoesNotExist:
         raise VehicleDoesNotExistsException

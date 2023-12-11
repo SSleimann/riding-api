@@ -24,8 +24,8 @@ class VehiclesCreationSerializerTestCase(TestCase):
         Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
         Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
         
-        payload = dict(driver=self.driver.id, plate_number="1234", model="asas", year=1234, color="blue")
-        serializer = VehiclesCreationSerializer(data=payload)
+        payload = dict(plate_number="1234", model="asas", year=1234, color="blue")
+        serializer = VehiclesCreationSerializer(data=payload, context={"driver": self.driver})
         serializer.is_valid()
         
         self.assertEqual(serializer.errors.keys(), {"vehicles"})
@@ -33,8 +33,8 @@ class VehiclesCreationSerializerTestCase(TestCase):
     def test_creation_serializer_vehicles_error(self):
         Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
         
-        payload = dict(driver=self.driver.id, plate_number="1234", model="asas", year=1234, color="blue")
-        serializer = VehiclesCreationSerializer(data=payload)
+        payload = dict(plate_number="1234", model="asas", year=1234, color="blue")
+        serializer = VehiclesCreationSerializer(data=payload, context={"driver": self.driver})
         is_valid = serializer.is_valid()
         
         Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")

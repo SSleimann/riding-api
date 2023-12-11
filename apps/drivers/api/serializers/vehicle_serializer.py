@@ -13,20 +13,25 @@ class VehiclesSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Vehicles
-        fields = ("driver", "plate_number", "model", "year", "color")
+        fields = ("id", "driver", "plate_number", "model", "year", "color")
     
     @extend_schema_field(OpenApiTypes.STR)
     def get_driver(self, obj):
-        return obj.driver_name
+        return obj.driver.driver_name
+
 
 class VehiclesCreationSerializer(serializers.ModelSerializer):
+    """ This class needs to be passed the "context" argument with the driver
+    
+    Eg: VehiclesCreationSerializer(..., context={"driver": driver})
+    """
     
     class Meta:
         model = Vehicles
-        fields = ("driver", "plate_number", "model", "year", "color")
+        fields = ("plate_number", "model", "year", "color")
     
     def validate(self, data):
-        driver = data.get("driver", None)
+        driver = self.context.get("driver", None)
         
         if driver.vehicles.count() >= 2:
             raise serializers.ValidationError({"vehicles": _("The driver has already 2 vehicles")})
@@ -34,9 +39,10 @@ class VehiclesCreationSerializer(serializers.ModelSerializer):
         return data
     
     def create(self, validated_data):
+        driver = self.context.get("driver", None)
         
         try:
-            vehicle = Vehicles.objects.create(**validated_data)
+            vehicle = Vehicles.objects.create(**validated_data, driver=driver)
         except TooManyVehiclesException as e: 
             raise serializers.ValidationError({"vehicles": _(e.msg)})
         

@@ -10,7 +10,7 @@ from apps.drivers.service import (
     set_user_driver_active,
     set_user_driver_inactive,
     get_driver_by_user_id,
-    delete_vehicle_by_id
+    delete_vehicle_by_id_and_driver_id
 )
 from apps.drivers.exceptions import (
     DriverDoesNotExistException,
@@ -116,7 +116,7 @@ class SetUserDriverInactiveTestCase(TestCase):
 
         self.assertTrue(self.driver.is_active)
 
-class DeleteVehicleByIdTestCase(TestCase):
+class DeleteVehicleByIdAndDriverIdTestCase(TestCase):
     def setUp(self):
         self.user = USER_MODEL.objects.create_user(
             username="te122stpepe",
@@ -132,13 +132,18 @@ class DeleteVehicleByIdTestCase(TestCase):
     def test_delete_vehicle(self):
         vehicle_id = self.vehicle.id
         
-        self.assertTrue(Vehicles.objects.filter(id=vehicle_id).exists())
+        self.assertTrue(Vehicles.objects.filter(id=vehicle_id, driver__id=self.driver.id).exists())
         
-        delete_vehicle_by_id(vehicle_id)
+        delete_vehicle_by_id_and_driver_id(vehicle_id, self.driver.id)
         
         self.assertFalse(Vehicles.objects.filter(id=vehicle_id).exists())
+        self.assertFalse(Vehicles.objects.filter(id=vehicle_id, driver__id=self.driver.id).exists())
     
     def test_delete_vehicle_does_not_exist(self):
         with self.assertRaises(VehicleDoesNotExistsException):
-            delete_vehicle_by_id(uuid4())
+            delete_vehicle_by_id_and_driver_id(uuid4(), self.driver.id)
+        
+    def test_delete_vehicle_with_invalid_driver(self):
+        with self.assertRaises(VehicleDoesNotExistsException):
+            delete_vehicle_by_id_and_driver_id(self.vehicle.id, uuid4())
         
