@@ -47,6 +47,9 @@ class Drivers(models.Model):
     def has_vehicles(self) -> bool:
         return self.vehicles.exists()
 
+    def __str__(self) -> str:
+        return "Driver id {0}, name: {1}, status: {2}".format(self.id, self.driver_name, self.status)
+    
     def set_active(self) -> None:
         self.is_active = True
         self.save()

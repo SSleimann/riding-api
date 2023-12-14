@@ -43,13 +43,15 @@ BASE_APPS = [
     "django.contrib.gis",
 ]
 
-LOCAL_APPS = ["apps.users.apps.UsersConfig", "apps.drivers.apps.DriversConfig"]
+LOCAL_APPS = ["apps.users.apps.UsersConfig", "apps.drivers.apps.DriversConfig", "apps.travels.apps.TravelsConfig"]
 
 THIRD_APPS = [
     "rest_framework",
     "django_filters",
     "oauth2_provider",
     "drf_spectacular",
+    "rest_framework_gis",
+    "geoip2"
 ]
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
@@ -175,6 +177,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.users.tasks.clear_expired_tokens",
         "schedule": 7200,
     },
+    "clear_expired_request_travels": {
+        "task": "apps.travels.tasks.clear_expired_req_travels",
+        "schedule": 7200,
+    }
 }
 
 # JWT
@@ -192,6 +198,7 @@ REST_FRAMEWORK = {
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 OAUTH2_PROVIDER = {
@@ -213,3 +220,5 @@ SPECTACULAR_SETTINGS = {
         "persistAuthorization": True,
     },
 }
+
+GEOIP_PATH =os.path.join(BASE_DIR, 'geoip')

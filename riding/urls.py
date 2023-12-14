@@ -38,5 +38,6 @@ urlpatterns = [
     ),
     path("users/", include("apps.users.urls"), name="users"),
     path("drivers/", include("apps.drivers.urls"), name="drivers"),
+    path("travels/", include("apps.travels.urls"), name="travels"),
     path("auth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
 ]
