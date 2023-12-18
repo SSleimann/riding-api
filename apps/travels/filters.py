@@ -11,11 +11,9 @@ class RequestTravelDistanceToRadiusFilter(BaseFilterBackend):
     longitude_param = "longitude"
     radius_param = "radius"
     
-    def _get_filter_point(self, serializer):
-        data = serializer.data
-        
-        longitude = data.get(self.longitude_param)
-        latitude = data.get(self.latitude_param)
+    def _get_filter_point(self, serializer_data):
+        longitude = serializer_data.get(self.longitude_param)
+        latitude = serializer_data.get(self.latitude_param)
         
         point = Point(longitude, latitude)
         
@@ -27,11 +25,11 @@ class RequestTravelDistanceToRadiusFilter(BaseFilterBackend):
             "longitude": request.query_params.get(self.longitude_param, None),
             "radius": request.query_params.get(self.radius_param, RequestTravel.MAX_RADIUS)
         }
-        
+
         serializer = RequestTravelQuerySerializer(data=query_strings)
         serializer.is_valid(raise_exception=True)
         
-        point = self._get_filter_point(serializer)
+        point = self._get_filter_point(serializer.data)
         radius = serializer.data.get(self.radius_param)
         
         queryset = queryset.filter(

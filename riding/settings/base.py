@@ -51,7 +51,6 @@ THIRD_APPS = [
     "oauth2_provider",
     "drf_spectacular",
     "rest_framework_gis",
-    "geoip2"
 ]
 
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
@@ -220,5 +219,3 @@ SPECTACULAR_SETTINGS = {
         "persistAuthorization": True,
     },
 }
-
-GEOIP_PATH =os.path.join(BASE_DIR, 'geoip')

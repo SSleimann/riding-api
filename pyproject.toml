@@ -24,7 +24,6 @@ dependencies = [
   "django-extensions",
   "djangorestframework-gis",
   "django-map-widgets",
-  "geoip2"
 ]
 
 [tool.black]

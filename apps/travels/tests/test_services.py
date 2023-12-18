@@ -5,7 +5,6 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 
-from apps.drivers.models import Drivers
 from apps.travels.models import RequestTravel
 from apps.travels.services import clear_expired_request_travels
 
@@ -21,7 +20,6 @@ class ClearExpiredRequestTravelsTestCase(TestCase):
             last_name="test",
             is_active=True,
         )
-        self.driver = Drivers.objects.create(user=self.user, is_active=True)
     
     def test_clear_expired_request_travels(self):
         created_at = timezone.now() - timedelta(hours=1)
