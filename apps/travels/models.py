@@ -3,8 +3,6 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now
 
-from apps.drivers.models import Drivers
-
 
 # Create your models here.
 class RequestTravel(models.Model):
@@ -19,7 +17,7 @@ class RequestTravel(models.Model):
         (TAKED, _("Taked")),
     )
 
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="req_travels")
     origin = models.PointField(srid=4326, geography=True)
     destination = models.PointField(srid=4326, geography=True)
     created_time = models.DateTimeField(default=now)

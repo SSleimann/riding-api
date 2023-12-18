@@ -3,6 +3,8 @@ from django.contrib.gis.measure import D
 
 from rest_framework.filters import BaseFilterBackend
 
+from django_filters.filterset import FilterSet
+
 from apps.travels.models import RequestTravel
 from apps.travels.api.serializers.request_travel_serializer import (
     RequestTravelQuerySerializer,
@@ -70,3 +72,9 @@ class RequestTravelDistanceToRadiusFilter(BaseFilterBackend):
                 "description": f"Represents radius in kilometers.",
             },
         ]
+
+class RequestTravelFilter(FilterSet):
+    
+    class Meta:
+        model = RequestTravel
+        fields = ("status", )

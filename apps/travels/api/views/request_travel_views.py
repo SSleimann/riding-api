@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.db.models import Q
 from django.utils import timezone
 
+from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,12 +14,14 @@ from oauth2_provider.contrib.rest_framework.permissions import TokenHasReadWrite
 from drf_spectacular.openapi import OpenApiParameter, OpenApiTypes
 from drf_spectacular.utils import extend_schema
 
+from django_filters.utils import translate_validation
+
 from apps.travels.permissions import IsDriverPermission
 from apps.travels.models import RequestTravel
 from apps.travels.api.serializers.request_travel_serializer import (
     RequestTravelSerializer,
 )
-from apps.travels.filters import RequestTravelDistanceToRadiusFilter
+from apps.travels.filters import RequestTravelDistanceToRadiusFilter, RequestTravelFilter
 
 
 class ListRequestTravelApiView(GenericAPIView):
@@ -64,3 +67,31 @@ class ListRequestTravelApiView(GenericAPIView):
         )
 
         return queryset
+
+class ListRequestTravelUserApiView(APIView):
+    permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
+    
+    @extend_schema(
+        responses={200: RequestTravelSerializer},
+        parameters=[
+            OpenApiParameter(
+                name="status",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Status of the request travel. P (Pending), T (Taked)"
+            )
+        ]
+    )
+    def get(self, request):
+        user = self.request.user
+        
+        filter = RequestTravelFilter(request.GET, queryset=user.req_travels.all())
+        
+        if not filter.is_valid():
+            raise translate_validation(filter.errors)
+        
+        request_travels = filter.qs
+        
+        serializer = RequestTravelSerializer(request_travels, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
