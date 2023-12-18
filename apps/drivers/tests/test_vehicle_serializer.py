@@ -8,6 +8,7 @@ from apps.drivers.models import Vehicles, Drivers
 from apps.drivers.api.serializers.vehicle_serializer import VehiclesCreationSerializer
 from apps.drivers.exceptions import TooManyVehiclesException
 
+
 class VehiclesCreationSerializerTestCase(TestCase):
     def setUp(self) -> None:
         self.user = get_user_model().objects.create_user(
@@ -19,29 +20,57 @@ class VehiclesCreationSerializerTestCase(TestCase):
             is_active=True,
         )
         self.driver = Drivers.objects.create(user=self.user, is_active=True)
-    
+
     def test_validate_serializer_vehicles_error(self):
-        Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
-        Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
-        
+        Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
+        Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
+
         payload = dict(plate_number="1234", model="asas", year=1234, color="blue")
-        serializer = VehiclesCreationSerializer(data=payload, context={"driver": self.driver})
+        serializer = VehiclesCreationSerializer(
+            data=payload, context={"driver": self.driver}
+        )
         serializer.is_valid()
-        
+
         self.assertEqual(serializer.errors.keys(), {"vehicles"})
-    
+
     def test_creation_serializer_vehicles_error(self):
-        Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
-        
+        Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
+
         payload = dict(plate_number="1234", model="asas", year=1234, color="blue")
-        serializer = VehiclesCreationSerializer(data=payload, context={"driver": self.driver})
+        serializer = VehiclesCreationSerializer(
+            data=payload, context={"driver": self.driver}
+        )
         is_valid = serializer.is_valid()
-        
-        Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
-        
+
+        Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
+
         self.assertTrue(is_valid)
-        
+
         with self.assertRaises(serializers.ValidationError) as e:
             serializer.save()
-            
+
         self.assertEqual(e.exception.detail.keys(), {"vehicles"})

@@ -9,6 +9,7 @@ from apps.drivers.tests.core import BaseViewTestCase
 
 USER_MODEL = get_user_model()
 
+
 class ViewDriverTestCase(BaseViewTestCase):
     def setUp(self) -> None:
         super().setUp()

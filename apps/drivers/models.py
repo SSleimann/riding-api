@@ -1,4 +1,3 @@
-
 import uuid
 
 from typing import Any
@@ -9,19 +8,23 @@ from django.conf import settings
 
 from apps.drivers.exceptions import TooManyVehiclesException
 
+
 # Create your models here.
 class VehicleManager(models.Manager):
-    
     def create(self, **kwargs: Any) -> Any:
-        if self._get_driver_vehicles_count(kwargs.get("driver")) >= Drivers.MAX_VEHICLES:
+        if (
+            self._get_driver_vehicles_count(kwargs.get("driver"))
+            >= Drivers.MAX_VEHICLES
+        ):
             raise TooManyVehiclesException
-        
+
         return super().create(**kwargs)
-    
+
     def _get_driver_vehicles_count(self, driver) -> int:
         driver_vehicles = self.get_queryset().filter(driver=driver)
-        
+
         return driver_vehicles.count()
+
 
 class Drivers(models.Model):
     ACTIVE = "A"
@@ -48,8 +51,10 @@ class Drivers(models.Model):
         return self.vehicles.exists()
 
     def __str__(self) -> str:
-        return "Driver id {0}, name: {1}, status: {2}".format(self.id, self.driver_name, self.status)
-    
+        return "Driver id {0}, name: {1}, status: {2}".format(
+            self.id, self.driver_name, self.status
+        )
+
     def set_active(self) -> None:
         self.is_active = True
         self.save()
@@ -58,19 +63,22 @@ class Drivers(models.Model):
         self.is_active = False
         self.save()
 
+
 class Vehicles(models.Model):
     id = models.UUIDField(_("id"), primary_key=True, default=uuid.uuid4, editable=False)
-    driver = models.ForeignKey(Drivers, on_delete=models.CASCADE, related_name="vehicles")
+    driver = models.ForeignKey(
+        Drivers, on_delete=models.CASCADE, related_name="vehicles"
+    )
     plate_number = models.CharField(_("plate number"), max_length=10)
     model = models.CharField(_("model"), max_length=100)
     year = models.IntegerField(_("year"))
     color = models.CharField(_("color"), max_length=100)
 
     objects = VehicleManager()
-    
+
     def __str__(self) -> str:
         return f"{self.model} {self.year} {self.color}"
-    
+
 
 # class Rating(models.Model):
 #     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)

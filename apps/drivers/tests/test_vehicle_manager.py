@@ -17,20 +17,32 @@ class VehicleManagerTestCase(TestCase):
             first_name="pablo",
             last_name="pedro",
         )
-        
+
         self.driver = Drivers.objects.create(user=user)
-    
+
     @patch("apps.drivers.models.VehicleManager._get_driver_vehicles_count")
     def test_error_too_many_vehicles(self, mock):
         mock.return_value = 3
-        
+
         with self.assertRaises(TooManyVehiclesException):
-            Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
-        
+            Vehicles.objects.create(
+                driver=self.driver,
+                plate_number="1234",
+                model="asas",
+                year=1234,
+                color="blue",
+            )
+
         self.assertTrue(mock.called)
-    
+
     def test_get_driver_vehicles_count(self):
-        Vehicles.objects.create(driver=self.driver, plate_number="1234", model="asas", year=1234, color="blue")
+        Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
         vehicle_count = Vehicles.objects._get_driver_vehicles_count(driver=self.driver)
-        
+
         self.assertEqual(vehicle_count, 1)

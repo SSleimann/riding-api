@@ -43,7 +43,11 @@ BASE_APPS = [
     "django.contrib.gis",
 ]
 
-LOCAL_APPS = ["apps.users.apps.UsersConfig", "apps.drivers.apps.DriversConfig", "apps.travels.apps.TravelsConfig"]
+LOCAL_APPS = [
+    "apps.users.apps.UsersConfig",
+    "apps.drivers.apps.DriversConfig",
+    "apps.travels.apps.TravelsConfig",
+]
 
 THIRD_APPS = [
     "rest_framework",
@@ -179,7 +183,7 @@ CELERY_BEAT_SCHEDULE = {
     "clear_expired_request_travels": {
         "task": "apps.travels.tasks.clear_expired_req_travels",
         "schedule": 7200,
-    }
+    },
 }
 
 # JWT
@@ -197,7 +201,7 @@ REST_FRAMEWORK = {
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
 OAUTH2_PROVIDER = {

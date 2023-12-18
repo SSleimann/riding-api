@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 USER_MODEL = get_user_model()
 
+
 class BaseViewTestCase(TestCase):
     def setUp(self) -> None:
         self.user = USER_MODEL.objects.create_user(

@@ -11,7 +11,7 @@ from apps.drivers.api.views.vehicles_views import (
     VehiclesCreationApiView,
     VehiclesListApiView,
     VehiclesDeleteApiView,
-    VehiclesDetailApiView
+    VehiclesDetailApiView,
 )
 
 app_name = "drivers"
@@ -27,8 +27,16 @@ driver_urlpatterns = [
 vehicles_urlpatterns = [
     path("vehicles/create/", VehiclesCreationApiView.as_view(), name="vehicles_create"),
     path("vehicles/", VehiclesListApiView.as_view(), name="vehicles_list"),
-    path("vehicles/delete/<uuid:uuid>/", VehiclesDeleteApiView.as_view(), name="vehicles_delete"),
-    path("vehicles/info/<uuid:uuid>", VehiclesDetailApiView.as_view(), name="vehicles_detail")
+    path(
+        "vehicles/delete/<uuid:uuid>/",
+        VehiclesDeleteApiView.as_view(),
+        name="vehicles_delete",
+    ),
+    path(
+        "vehicles/info/<uuid:uuid>",
+        VehiclesDetailApiView.as_view(),
+        name="vehicles_detail",
+    ),
 ]
 
 urlpatterns = driver_urlpatterns + vehicles_urlpatterns
