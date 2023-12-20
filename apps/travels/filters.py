@@ -73,8 +73,8 @@ class RequestTravelDistanceToRadiusFilter(BaseFilterBackend):
             },
         ]
 
+
 class RequestTravelFilter(FilterSet):
-    
     class Meta:
         model = RequestTravel
-        fields = ("status", )
+        fields = ("status",)

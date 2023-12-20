@@ -17,7 +17,9 @@ class RequestTravel(models.Model):
         (TAKED, _("Taked")),
     )
 
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="req_travels")
+    user = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE, related_name="req_travels"
+    )
     origin = models.PointField(srid=4326, geography=True)
     destination = models.PointField(srid=4326, geography=True)
     created_time = models.DateTimeField(default=now)

@@ -20,8 +20,12 @@ from apps.travels.permissions import IsDriverPermission
 from apps.travels.models import RequestTravel
 from apps.travels.api.serializers.request_travel_serializer import (
     RequestTravelSerializer,
+    RequestTravelCreationSerializer,
 )
-from apps.travels.filters import RequestTravelDistanceToRadiusFilter, RequestTravelFilter
+from apps.travels.filters import (
+    RequestTravelDistanceToRadiusFilter,
+    RequestTravelFilter,
+)
 
 
 class ListRequestTravelApiView(GenericAPIView):
@@ -68,9 +72,10 @@ class ListRequestTravelApiView(GenericAPIView):
 
         return queryset
 
+
 class ListRequestTravelUserApiView(APIView):
     permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
-    
+
     @extend_schema(
         responses={200: RequestTravelSerializer},
         parameters=[
@@ -78,20 +83,41 @@ class ListRequestTravelUserApiView(APIView):
                 name="status",
                 type=OpenApiTypes.STR,
                 location=OpenApiParameter.QUERY,
-                description="Status of the request travel. P (Pending), T (Taked)"
+                description="Status of the request travel. P (Pending), T (Taked)",
             )
-        ]
+        ],
     )
     def get(self, request):
-        user = self.request.user
-        
+        user = request.user
+
         filter = RequestTravelFilter(request.GET, queryset=user.req_travels.all())
-        
+
         if not filter.is_valid():
             raise translate_validation(filter.errors)
-        
+
         request_travels = filter.qs
-        
+
         serializer = RequestTravelSerializer(request_travels, many=True)
-        
+
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CreateRequestTravelApiView(APIView):
+    permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
+
+    @extend_schema(
+        request=RequestTravelCreationSerializer,
+        responses={201: RequestTravelSerializer},
+    )
+    def post(self, request):
+        user = self.request.user
+
+        serializer = RequestTravelCreationSerializer(
+            data=request.data, context={"user": user}
+        )
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+
+        data = RequestTravelSerializer(obj).data
+
+        return Response(data, status=status.HTTP_201_CREATED)
