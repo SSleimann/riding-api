@@ -33,7 +33,7 @@ vehicles_urlpatterns = [
         name="vehicles_delete",
     ),
     path(
-        "vehicles/info/<uuid:uuid>",
+        "vehicles/info/<uuid:uuid>/",
         VehiclesDetailApiView.as_view(),
         name="vehicles_detail",
     ),

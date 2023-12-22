@@ -11,3 +11,7 @@ class IsDriverPermission(BasePermission):
             return False
 
         return bool(request.user and obj.get("is_active", False))
+    
+class IsOwnerPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return bool(request.user and obj.user == request.user)

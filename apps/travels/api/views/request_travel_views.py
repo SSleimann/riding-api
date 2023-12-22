@@ -16,7 +16,7 @@ from drf_spectacular.utils import extend_schema
 
 from django_filters.utils import translate_validation
 
-from apps.travels.permissions import IsDriverPermission
+from apps.travels.permissions import IsDriverPermission, IsOwnerPermission
 from apps.travels.models import RequestTravel
 from apps.travels.api.serializers.request_travel_serializer import (
     RequestTravelSerializer,
@@ -26,6 +26,7 @@ from apps.travels.filters import (
     RequestTravelDistanceToRadiusFilter,
     RequestTravelFilter,
 )
+from apps.travels.services import get_request_travel_by_id, delete_request_travel_by_id_and_user_id
 
 
 class ListRequestTravelApiView(GenericAPIView):
@@ -56,6 +57,7 @@ class ListRequestTravelApiView(GenericAPIView):
                 required=True,
             ),
         ],
+        description="Retrieves all request travels near a point with a radius"
     )
     def get(self, request):
         queryset = self.filter_queryset(self.get_queryset())
@@ -86,6 +88,7 @@ class ListRequestTravelUserApiView(APIView):
                 description="Status of the request travel. P (Pending), T (Taked)",
             )
         ],
+        description="Retrieves all request travels of the user"
     )
     def get(self, request):
         user = request.user
@@ -108,6 +111,7 @@ class CreateRequestTravelApiView(APIView):
     @extend_schema(
         request=RequestTravelCreationSerializer,
         responses={201: RequestTravelSerializer},
+        description="Create a request travel"
     )
     def post(self, request):
         user = self.request.user
@@ -121,3 +125,37 @@ class CreateRequestTravelApiView(APIView):
         data = RequestTravelSerializer(obj).data
 
         return Response(data, status=status.HTTP_201_CREATED)
+
+class RequestTravelApiView(APIView):
+    permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
+    
+    @extend_schema(
+        responses={200: RequestTravelSerializer},
+        description="Retrieve a request travel"
+    )
+    def get(self, request, id):
+        request_travel = get_request_travel_by_id(id)
+        
+        serializer = RequestTravelSerializer(request_travel)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @extend_schema(
+        responses={204: None},
+        description="Delete a request travel"
+    )
+    def delete(self, request, id):
+        request_travel = get_request_travel_by_id(id)
+        self.check_object_permissions(request, request_travel)
+        
+        delete_request_travel_by_id_and_user_id(request_travel.id, request.user.id)
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def get_permissions(self):
+        permission_classes = self.permission_classes
+        
+        if self.request.method == "DELETE":
+            permission_classes = (IsOwnerPermission,) + permission_classes
+        
+        return [permission() for permission in permission_classes]
