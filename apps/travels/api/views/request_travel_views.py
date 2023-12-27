@@ -66,10 +66,8 @@ class ListRequestTravelApiView(GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
-        expired_at = timezone.now() - timedelta(minutes=RequestTravel.DELETE_TIME_MIN)
-
         queryset = RequestTravel.objects.filter(
-            Q(status=RequestTravel.PENDING) and Q(created_time__gte=expired_at)
+            Q(status=RequestTravel.PENDING) and Q(expires__gte=timezone.now())
         )
 
         return queryset

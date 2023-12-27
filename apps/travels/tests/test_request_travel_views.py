@@ -17,11 +17,11 @@ class ViewTestCase(BaseViewTestCase):
         self.driver = Drivers.objects.create(user=self.user, is_active=True)
 
 
-class ListRequestTravelApiViewTestCAse(ViewTestCase):
+class ListRequestTravelApiViewTestCase(ViewTestCase):
     def test_get_list_request_travels(self):
         origin = Point(0, 0)
         destination = Point(0, 0)
-
+        
         RequestTravel.objects.create(
             user=self.user, origin=origin, destination=destination
         )
@@ -32,7 +32,7 @@ class ListRequestTravelApiViewTestCAse(ViewTestCase):
             user=self.user,
             origin=origin,
             destination=destination,
-            created_time=timezone.now() - timedelta(hours=1),
+            expires=timezone.now() - timedelta(hours=1),
         )
 
         url = reverse_lazy("travels:request_travel_list")

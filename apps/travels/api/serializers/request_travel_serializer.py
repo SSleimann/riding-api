@@ -1,3 +1,7 @@
+from datetime import timedelta
+
+from django.utils.timezone import now
+
 from rest_framework.serializers import Serializer, IntegerField, FloatField
 from rest_framework_gis.serializers import ModelSerializer
 
@@ -24,7 +28,7 @@ class RequestTravelCreationSerializer(ModelSerializer):
 
     def create(self, validated_data):
         user = self.context.get("user", None)
-
+        
         request_travel = RequestTravel.objects.create(**validated_data, user=user)
 
         return request_travel

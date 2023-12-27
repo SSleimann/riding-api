@@ -23,10 +23,8 @@ class TestView(GenericAPIView):
     filter_backends = (RequestTravelDistanceToRadiusFilter,)
 
     def get_queryset(self):
-        expired_at = timezone.now() - timedelta(minutes=RequestTravel.DELETE_TIME_MIN)
-
         queryset = RequestTravel.objects.filter(
-            Q(status=RequestTravel.PENDING) and Q(created_time__gte=expired_at)
+            Q(status=RequestTravel.PENDING) and Q(expires__gte=timezone.now() )
         )
 
         return queryset
