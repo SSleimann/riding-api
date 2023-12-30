@@ -4,11 +4,12 @@ from apps.travels.api.views.request_travel_views import (
     ListRequestTravelApiView,
     ListRequestTravelUserApiView,
     CreateRequestTravelApiView,
-    RequestTravelApiView
+    RequestTravelApiView,
 )
 
 from apps.travels.api.views.travel_views import (
-    TakeRequestTravelApiView
+    TakeRequestTravelApiView,
+    TravelApiView,
 )
 
 app_name = "travels"
@@ -23,7 +24,13 @@ urlpatterns = [
     path(
         "rt/create/", CreateRequestTravelApiView.as_view(), name="request_travel_create"
     ),
-    path("rt/<int:id>/", RequestTravelApiView.as_view(), name="request_travel_get_delete"),
-    
-    path("travel/take/<int:request_travel_id>/", TakeRequestTravelApiView.as_view(), name="travel_take_request_travel")
+    path(
+        "rt/<int:id>/", RequestTravelApiView.as_view(), name="request_travel_get_delete"
+    ),
+    path(
+        "travel/take/<int:request_travel_id>/",
+        TakeRequestTravelApiView.as_view(),
+        name="travel_take_request_travel",
+    ),
+    path("travel/<int:travel_id>/", TravelApiView.as_view(), name="travel_retrieve"),
 ]

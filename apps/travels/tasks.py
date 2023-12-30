@@ -10,9 +10,9 @@ from apps.travels.services import clear_expired_request_travels
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task
 def clear_expired_req_travels():
-    
     clear_expired_request_travels()
 
     return "Expired requests cleared"
@@ -21,10 +21,10 @@ def clear_expired_req_travels():
 @shared_task(bind=True)
 def send_email_to_user_by_travel(self, travel_id: int, subject: str, message: str):
     travel = Travel.objects.select_related("user").get(id=travel_id)
-    
+
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = [ travel.user.email ]
-    
+    recipient_list = [travel.user.email]
+
     try:
         send_mail(
             subject=subject,
@@ -35,7 +35,7 @@ def send_email_to_user_by_travel(self, travel_id: int, subject: str, message: st
         )
     except Exception as e:
         raise self.retry(exc=e, countdown=5)
-    
+
     logger.info("Email sent to %s ", travel.user.email)
-    
+
     return "Email sent"

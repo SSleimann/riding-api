@@ -28,7 +28,7 @@ class RequestTravelCreationSerializer(ModelSerializer):
 
     def create(self, validated_data):
         user = self.context.get("user", None)
-        
+
         request_travel = RequestTravel.objects.create(**validated_data, user=user)
 
         return request_travel

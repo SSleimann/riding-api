@@ -7,8 +7,10 @@ from django.utils.timezone import now
 
 from apps.drivers.models import Drivers
 
+
 def request_travel_exp_time():
     return now() + timedelta(minutes=RequestTravel.DELETE_TIME_MIN)
+
 
 # Create your models here.
 class RequestTravel(models.Model):
@@ -48,37 +50,39 @@ class RequestTravel(models.Model):
     def __str__(self):
         return "RequestTravel id {0}, origin: {1}".format(self.id, self.origin.coords)
 
+
 class Travel(models.Model):
     DONE = "D"
     IN_COURSE = "I"
     CANCELLED = "C"
-    
+
     CHOICES_STATUS = (
         (DONE, _("Done travel")),
         (IN_COURSE, _("Travel in course")),
-        (CANCELLED, _("Cancelled travel"))
+        (CANCELLED, _("Cancelled travel")),
     )
-    
+
     user = models.ForeignKey(
         get_user_model(), on_delete=models.SET_NULL, related_name="travels", null=True
     )
     driver = models.ForeignKey(
         Drivers, on_delete=models.SET_NULL, related_name="travels", null=True
     )
-    request_travel = models.OneToOneField(RequestTravel, on_delete=models.SET_NULL, related_name="travel", null=True)
-    
-    
+    request_travel = models.OneToOneField(
+        RequestTravel, on_delete=models.SET_NULL, related_name="travel", null=True
+    )
+
     origin = models.PointField(srid=4326, geography=True)
     destination = models.PointField(srid=4326, geography=True)
     taked_date = models.DateTimeField(default=now)
-    
+
     status = models.CharField(
         _("travels status"),
         max_length=1,
         choices=CHOICES_STATUS,
         default=IN_COURSE,
     )
-    
+
     @property
     def distance_m(self):
         return self.origin.distance(self.destination) * 1000

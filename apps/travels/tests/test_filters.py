@@ -24,7 +24,7 @@ class TestView(GenericAPIView):
 
     def get_queryset(self):
         queryset = RequestTravel.objects.filter(
-            Q(status=RequestTravel.PENDING) and Q(expires__gte=timezone.now() )
+            Q(status=RequestTravel.PENDING) and Q(expires__gte=timezone.now())
         )
 
         return queryset
