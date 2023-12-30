@@ -7,6 +7,10 @@ from apps.travels.api.views.request_travel_views import (
     RequestTravelApiView
 )
 
+from apps.travels.api.views.travel_views import (
+    TakeRequestTravelApiView
+)
+
 app_name = "travels"
 
 urlpatterns = [
@@ -19,5 +23,7 @@ urlpatterns = [
     path(
         "rt/create/", CreateRequestTravelApiView.as_view(), name="request_travel_create"
     ),
-    path("rt/<int:id>/", RequestTravelApiView.as_view(), name="request_travel_get_delete")
+    path("rt/<int:id>/", RequestTravelApiView.as_view(), name="request_travel_get_delete"),
+    
+    path("travel/take/<int:request_travel_id>/", TakeRequestTravelApiView.as_view(), name="travel_take_request_travel")
 ]

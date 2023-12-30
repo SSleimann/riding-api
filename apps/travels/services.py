@@ -48,7 +48,7 @@ def delete_request_travel_by_id_and_user_id(request_travel_id: int, user_id: UUI
 def take_request_travel(request_travel_id: int, user_id: UUID, long: float, lat: float):
     driver_loc = Point(long, lat)
     driver = get_driver_by_user_id(user_id)
-    
+
     try:
         request_travel = RequestTravel.objects.select_related("user").get(
             status=RequestTravel.PENDING,
@@ -56,7 +56,7 @@ def take_request_travel(request_travel_id: int, user_id: UUID, long: float, lat:
             expires__gte=timezone.now(),
             origin__distance_lte=(driver_loc, D(km=RequestTravel.MAX_RADIUS))
         )
-    except:
+    except RequestTravel.DoesNotExist:
         raise RequestTravelDoesNotFound
     
     if driver.user.id == request_travel.user.id:

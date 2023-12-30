@@ -43,6 +43,7 @@ def send_verification_email(self, user_pk):
             message=message,
             from_email=from_email,
             recipient_list=[user.email],
+            fail_silently=False,
         )
     except Exception as e:
         raise self.retry(exc=e, countdown=5)
