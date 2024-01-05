@@ -14,7 +14,7 @@ class DriverSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Drivers
-        fields = ("user", "is_active", "status")
+        fields = ("id", "user", "is_active", "status")
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_user(self, obj):

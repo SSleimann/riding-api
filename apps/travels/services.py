@@ -2,8 +2,6 @@ import logging
 
 from uuid import UUID
 
-from datetime import timedelta
-
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.gis.geos import Point
@@ -15,8 +13,11 @@ from apps.travels.exceptions import (
     RequestTravelDoesNotFound,
     DriverCantTakeRequestTravel,
     TravelDoesNotFound,
+    CannotCancelThisTravel,
 )
 from apps.drivers.service import get_driver_by_user_id
+from apps.users.services import get_user_by_id
+from apps.users.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -94,5 +95,30 @@ def get_travel_by_id(travel_id: int) -> Travel:
         travel = Travel.objects.get(id=travel_id)
     except Travel.DoesNotExist:
         raise TravelDoesNotFound
+
+    return travel
+
+
+def cancel_travel(travel_id: int, user_id: UUID) -> Travel:
+    def validation_for_cancel(travel: Travel, user: User) -> bool:
+        if travel.status != Travel.IN_COURSE:
+            return False
+
+        try:
+            if (travel.user.id == user.id) or (travel.driver.id == user.drivers.id):
+                return True
+        except User.drivers.RelatedObjectDoesNotExist:
+            return False
+
+        return False
+
+    travel = get_travel_by_id(travel_id)
+    user_deleter = get_user_by_id(user_id)
+
+    if not validation_for_cancel(travel, user_deleter):
+        raise CannotCancelThisTravel
+
+    travel.status = Travel.CANCELLED
+    travel.save()
 
     return travel

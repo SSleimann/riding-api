@@ -19,11 +19,9 @@ def clear_expired_req_travels():
 
 
 @shared_task(bind=True)
-def send_email_to_user_by_travel(self, travel_id: int, subject: str, message: str):
-    travel = Travel.objects.select_related("user").get(id=travel_id)
-
+def send_email_to_users(self, subject: str, message: str, users: list[str]):
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = [travel.user.email]
+    recipient_list = users
 
     try:
         send_mail(
@@ -36,6 +34,6 @@ def send_email_to_user_by_travel(self, travel_id: int, subject: str, message: st
     except Exception as e:
         raise self.retry(exc=e, countdown=5)
 
-    logger.info("Email sent to %s ", travel.user.email)
+    logger.info("Email sent to %s ", recipient_list)
 
     return "Email sent"

@@ -10,12 +10,13 @@ from apps.travels.api.views.request_travel_views import (
 from apps.travels.api.views.travel_views import (
     TakeRequestTravelApiView,
     TravelApiView,
+    CancelTravelApiView,
 )
 
 app_name = "travels"
 
 urlpatterns = [
-    path("rt/", ListRequestTravelApiView.as_view(), name="request_travel_list"),
+    path("rt/list/", ListRequestTravelApiView.as_view(), name="request_travel_list"),
     path(
         "rt/user/",
         ListRequestTravelUserApiView.as_view(),
@@ -33,4 +34,9 @@ urlpatterns = [
         name="travel_take_request_travel",
     ),
     path("travel/<int:travel_id>/", TravelApiView.as_view(), name="travel_retrieve"),
+    path(
+        "travel/cancel/<int:travel_id>/",
+        CancelTravelApiView.as_view(),
+        name="travel_cancel",
+    ),
 ]

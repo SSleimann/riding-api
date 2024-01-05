@@ -11,8 +11,8 @@ from apps.travels.api.serializers.travel_serializers import (
     TravelSerializer,
     TakeRequestTravelSerializer,
 )
-from apps.travels.services import take_request_travel, get_travel_by_id
-from apps.travels.tasks import send_email_to_user_by_travel
+from apps.travels.services import take_request_travel, get_travel_by_id, cancel_travel
+from apps.travels.tasks import send_email_to_users
 
 
 class TakeRequestTravelApiView(APIView):
@@ -31,12 +31,12 @@ class TakeRequestTravelApiView(APIView):
         )
 
         travel = take_request_travel(request_travel_id, request.user.id, long, lat)
-        send_email_to_user_by_travel.delay(
-            travel.id,
+        send_email_to_users.delay(
             "Your travel request has been taken!",
             "Your travel request has been taken by {0}, the travel id is {1}".format(
                 travel.driver.driver_name, travel.id
             ),
+            [travel.user.email],
         )
 
         return Response(TravelSerializer(travel).data, status=status.HTTP_200_OK)
@@ -50,5 +50,22 @@ class TravelApiView(APIView):
     )
     def get(self, request, travel_id: int):
         travel = get_travel_by_id(travel_id)
+
+        return Response(TravelSerializer(travel).data, status=status.HTTP_200_OK)
+
+
+class CancelTravelApiView(APIView):
+    permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
+
+    @extend_schema(responses={200: TravelSerializer}, request=None)
+    def post(self, request, travel_id: int):
+        travel = cancel_travel(travel_id, request.user.id)
+        send_email_to_users.delay(
+            "Your travel has been cancelled!",
+            "Your travel has been cancelled by {0}".format(
+                request.user.get_full_name()
+            ),
+            [travel.user.email, travel.driver.user.email],
+        )
 
         return Response(TravelSerializer(travel).data, status=status.HTTP_200_OK)

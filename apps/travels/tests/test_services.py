@@ -14,13 +14,16 @@ from apps.travels.services import (
     delete_request_travel_by_id_and_user_id,
     take_request_travel,
     get_travel_by_id,
+    cancel_travel,
 )
 from apps.travels.exceptions import (
     RequestTravelDoesNotFound,
     DriverCantTakeRequestTravel,
     TravelDoesNotFound,
+    CannotCancelThisTravel,
 )
 from apps.drivers.models import Drivers
+from apps.users.exceptions import UserNotFound
 
 USER_MODEL = get_user_model()
 
@@ -215,3 +218,106 @@ class GetTravelByIdTestCase(TestCase):
     def test_get_travel_by_id_not_found(self):
         with self.assertRaises(TravelDoesNotFound):
             get_travel_by_id(9000)
+
+
+class CancelTravelTestCase(TestCase):
+    def setUp(self) -> None:
+        self.user = USER_MODEL.objects.create_user(
+            username="XXXXXXXXXXX",
+            email="XXXXXXXXXXXXXX",
+            password="testpass12345",
+            first_name="test",
+            last_name="test",
+            is_active=True,
+        )
+        self.driver = Drivers.objects.create(user=self.user, is_active=True)
+        self.request_travel = RequestTravel.objects.create(
+            user=self.user, origin=Point(0, 0), destination=Point(0, 0)
+        )
+
+    def test_cancel_travel_user_id(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+        )
+
+        cancelled_travel = cancel_travel(travel.id, self.user.id)
+        travel = Travel.objects.get(id=travel.id)
+
+        self.assertEqual(cancelled_travel.id, travel.id)
+        self.assertEqual(travel.status, Travel.CANCELLED)
+        self.assertEqual(cancelled_travel.status, Travel.CANCELLED)
+
+    def test_cancel_travel_driver_id(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+        )
+
+        cancelled_travel = cancel_travel(travel.id, self.driver.user.id)
+        travel = Travel.objects.get(id=travel.id)
+
+        self.assertEqual(cancelled_travel.id, travel.id)
+        self.assertEqual(travel.status, Travel.CANCELLED)
+        self.assertEqual(cancelled_travel.status, Travel.CANCELLED)
+
+    def test_cant_cancel_travel_status(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+            status=Travel.DONE,
+        )
+
+        with self.assertRaises(CannotCancelThisTravel):
+            cancel_travel(travel.id, self.user.id)
+
+        self.assertEqual(Travel.objects.get(id=travel.id).status, Travel.DONE)
+
+    def test_cant_cancel_travel_invalid_user(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+        )
+
+        user2 = USER_MODEL.objects.create_user(
+            username="1XXXXXXXXXXX",
+            email="XXXXXXX1XXXXXXX",
+            password="te1stpass12345",
+            first_name="test",
+            last_name="test",
+            is_active=True,
+        )
+
+        with self.assertRaises(CannotCancelThisTravel):
+            cancel_travel(travel.id, user2.id)
+
+        self.assertEqual(Travel.objects.get(id=travel.id).status, Travel.IN_COURSE)
+
+    def test_cant_cancel_travel_not_found(self):
+        with self.assertRaises(TravelDoesNotFound):
+            cancel_travel(9000, self.user.id)
+
+    def test_cant_cancel_travel_not_found_user(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+            status=Travel.DONE,
+        )
+
+        with self.assertRaises(UserNotFound):
+            cancel_travel(travel.id, uuid4())

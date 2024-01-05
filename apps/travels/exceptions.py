@@ -19,3 +19,9 @@ class TravelDoesNotFound(APIException):
     status_code = 404
     default_detail = _("Travel does not found")
     default_code = "travel_error"
+
+
+class CannotCancelThisTravel(APIException):
+    status_code = 400
+    default_detail = _("You cannot cancel this travel")
+    default_code = "travel_error"
