@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 
-from apps.travels.models import RequestTravel, Travel
+from apps.travels.models import RequestTravel, Travel, ConfirmationTravel
 from apps.travels.services import (
     clear_expired_request_travels,
     get_request_travel_by_id,
@@ -15,12 +15,14 @@ from apps.travels.services import (
     take_request_travel,
     get_travel_by_id,
     cancel_travel,
+    finish_travel,
 )
 from apps.travels.exceptions import (
     RequestTravelDoesNotFound,
     DriverCantTakeRequestTravel,
     TravelDoesNotFound,
     CannotCancelThisTravel,
+    CannotFinishThisTravel,
 )
 from apps.drivers.models import Drivers
 from apps.users.exceptions import UserNotFound
@@ -230,7 +232,15 @@ class CancelTravelTestCase(TestCase):
             last_name="test",
             is_active=True,
         )
-        self.driver = Drivers.objects.create(user=self.user, is_active=True)
+        self.user_driver = USER_MODEL.objects.create_user(
+            username="XXXXXX1XXXX",
+            email="XXXXXXX1XXXXXXX",
+            password="testpass12345",
+            first_name="test",
+            last_name="test",
+            is_active=True,
+        )
+        self.driver = Drivers.objects.create(user=self.user_driver, is_active=True)
         self.request_travel = RequestTravel.objects.create(
             user=self.user, origin=Point(0, 0), destination=Point(0, 0)
         )
@@ -292,8 +302,8 @@ class CancelTravelTestCase(TestCase):
         )
 
         user2 = USER_MODEL.objects.create_user(
-            username="1XXXXXXXXXXX",
-            email="XXXXXXX1XXXXXXX",
+            username="1XXX111XXXXXXXX",
+            email="XXXXXXX1X1XXXXXX",
             password="te1stpass12345",
             first_name="test",
             last_name="test",
@@ -321,3 +331,121 @@ class CancelTravelTestCase(TestCase):
 
         with self.assertRaises(UserNotFound):
             cancel_travel(travel.id, uuid4())
+
+
+class FinishTravelTestCase(TestCase):
+    def setUp(self) -> None:
+        self.user = USER_MODEL.objects.create_user(
+            username="XXXXXXXXXXX",
+            email="XXXXXXXXXXXXXX",
+            password="testpass12345",
+            first_name="test",
+            last_name="test",
+            is_active=True,
+        )
+        self.user_driver = USER_MODEL.objects.create_user(
+            username="XXXXXX1XXXX",
+            email="XXXXXXX1XXXXXXX",
+            password="testpass12345",
+            first_name="test",
+            last_name="test",
+            is_active=True,
+        )
+        self.driver = Drivers.objects.create(user=self.user_driver, is_active=True)
+
+        self.request_travel = RequestTravel.objects.create(
+            user=self.user, origin=Point(0, 0), destination=Point(0, 0)
+        )
+
+    def test_finish_travel_user_id(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+        )
+        conf_travel = ConfirmationTravel.objects.create(
+            travel=travel,
+            user=None,
+            driver=self.driver,
+        )
+
+        confirmed_travel = finish_travel(travel.id, self.user.id)
+
+        self.assertEqual(confirmed_travel.travel.status, Travel.DONE)
+        self.assertEqual(confirmed_travel.user, self.user)
+        self.assertEqual(confirmed_travel.travel.id, travel.id)
+        self.assertEqual(confirmed_travel.driver, self.driver)
+        self.assertEqual(conf_travel.id, confirmed_travel.id)
+
+    def test_finish_travel_driver_id(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+        )
+        conf_travel = ConfirmationTravel.objects.create(
+            travel=travel,
+            user=self.user,
+            driver=None,
+        )
+
+        confirmed_travel = finish_travel(travel.id, self.user_driver.id)
+
+        self.assertEqual(confirmed_travel.travel.status, Travel.DONE)
+        self.assertEqual(confirmed_travel.user, self.user)
+        self.assertEqual(confirmed_travel.travel.id, travel.id)
+        self.assertEqual(confirmed_travel.driver, self.driver)
+        self.assertEqual(conf_travel.id, confirmed_travel.id)
+
+    def test_finish_travel_first_confirmation_user_id(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+        )
+
+        confirmed_travel = finish_travel(travel.id, self.user.id)
+
+        self.assertNotEqual(confirmed_travel.travel.status, Travel.DONE)
+        self.assertEqual(confirmed_travel.user, self.user)
+        self.assertEqual(confirmed_travel.travel.id, travel.id)
+        self.assertEqual(confirmed_travel.driver, None)
+        self.assertEqual(ConfirmationTravel.objects.count(), 1)
+
+    def test_finish_travel_first_confirmation_driver_id(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+        )
+
+        confirmed_travel = finish_travel(travel.id, self.user_driver.id)
+
+        self.assertNotEqual(confirmed_travel.travel.status, Travel.DONE)
+        self.assertEqual(confirmed_travel.driver, self.driver)
+        self.assertEqual(confirmed_travel.travel.id, travel.id)
+        self.assertEqual(confirmed_travel.user, None)
+        self.assertEqual(ConfirmationTravel.objects.count(), 1)
+
+    def test_cant_finish_travel(self):
+        travel = Travel.objects.create(
+            user=self.user,
+            driver=self.driver,
+            request_travel=self.request_travel,
+            origin=self.request_travel.origin,
+            destination=self.request_travel.destination,
+            status=Travel.DONE,
+        )
+
+        with self.assertRaises(CannotFinishThisTravel):
+            finish_travel(travel.id, self.user_driver.id)
+
+        self.assertEqual(ConfirmationTravel.objects.count(), 0)

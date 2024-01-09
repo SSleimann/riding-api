@@ -8,12 +8,13 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db import transaction, DatabaseError
 
-from apps.travels.models import RequestTravel, Travel
+from apps.travels.models import RequestTravel, Travel, ConfirmationTravel
 from apps.travels.exceptions import (
     RequestTravelDoesNotFound,
     DriverCantTakeRequestTravel,
     TravelDoesNotFound,
     CannotCancelThisTravel,
+    CannotFinishThisTravel,
 )
 from apps.drivers.service import get_driver_by_user_id
 from apps.users.services import get_user_by_id
@@ -122,3 +123,32 @@ def cancel_travel(travel_id: int, user_id: UUID) -> Travel:
     travel.save()
 
     return travel
+
+
+def finish_travel(travel_id: int, user_id: UUID) -> ConfirmationTravel:
+    travel = get_travel_by_id(travel_id)
+    user_finisher = get_user_by_id(user_id)
+
+    if travel.status != Travel.IN_COURSE:
+        raise CannotFinishThisTravel
+    
+    confirmation_travel, _= ConfirmationTravel.objects.get_or_create(travel=travel)
+
+    try:
+        if user_finisher.id == travel.user.id:
+            confirmation_travel.user = user_finisher
+        elif travel.driver.id == user_finisher.drivers.id:
+            confirmation_travel.driver = user_finisher.drivers
+        else:
+            raise CannotFinishThisTravel
+
+        confirmation_travel.save()
+
+    except User.drivers.RelatedObjectDoesNotExist:
+        raise CannotFinishThisTravel
+
+    if confirmation_travel.user is not None and confirmation_travel.driver is not None:
+        travel.status = Travel.DONE
+        travel.save()
+
+    return confirmation_travel

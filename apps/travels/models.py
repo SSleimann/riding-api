@@ -63,13 +63,25 @@ class Travel(models.Model):
     )
 
     user = models.ForeignKey(
-        get_user_model(), on_delete=models.SET_NULL, related_name="travels", null=True
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        related_name="travels",
+        null=True,
+        blank=True,
     )
     driver = models.ForeignKey(
-        Drivers, on_delete=models.SET_NULL, related_name="travels", null=True
+        Drivers,
+        on_delete=models.SET_NULL,
+        related_name="travels",
+        null=True,
+        blank=True,
     )
     request_travel = models.OneToOneField(
-        RequestTravel, on_delete=models.SET_NULL, related_name="travel", null=True
+        RequestTravel,
+        on_delete=models.SET_NULL,
+        related_name="travel",
+        null=True,
+        blank=True,
     )
 
     origin = models.PointField(srid=4326, geography=True)
@@ -89,3 +101,28 @@ class Travel(models.Model):
 
     def __str__(self):
         return "Travel id {0}, origin: {1}".format(self.id, self.origin.coords)
+
+
+class ConfirmationTravel(models.Model):
+    travel = models.OneToOneField(
+        Travel, on_delete=models.CASCADE, related_name="confirmation"
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        related_name="confirmations",
+        null=True,
+        blank=True,
+    )
+    driver = models.ForeignKey(
+        Drivers,
+        on_delete=models.SET_NULL,
+        related_name="confirmations",
+        null=True,
+        blank=True,
+    )
+
+    created_time = models.DateTimeField(default=now)
+
+    def __str__(self):
+        return "ConfirmationTravel id {0}, travel: {1}".format(self.id, self.travel.id)

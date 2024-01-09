@@ -61,7 +61,7 @@ INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
 
 # databases
 DATABASES = {
-    "default": env.db_url("DATABASE_URL", default="sqlite:///db.db"),
+    "default": env.db_url("DATABASE_URL"),
 }
 
 # passwords hashers

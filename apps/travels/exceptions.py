@@ -25,3 +25,9 @@ class CannotCancelThisTravel(APIException):
     status_code = 400
     default_detail = _("You cannot cancel this travel")
     default_code = "travel_error"
+
+
+class CannotFinishThisTravel(APIException):
+    status_code = 400
+    default_detail = _("You cannot finish this travel")
+    default_code = "travel_error"
