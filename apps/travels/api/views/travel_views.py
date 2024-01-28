@@ -29,8 +29,11 @@ class TakeRequestTravelApiView(APIView):
         long, lat = serializer.data.get("longitude", None), serializer.data.get(
             "latitude", None
         )
+        vehicle_id = serializer.data.get("vehicle_id", None)
 
-        travel = take_request_travel(request_travel_id, request.user.id, long, lat)
+        travel = take_request_travel(
+            request_travel_id, request.user.id, long, lat, vehicle_id
+        )
         send_email_to_users.delay(
             "Your travel request has been taken!",
             "Your travel request has been taken by {0}, the travel id is {1}".format(

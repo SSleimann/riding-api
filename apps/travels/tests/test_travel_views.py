@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core import mail
 
 from apps.travels.tests.core import BaseViewTestCase
-from apps.drivers.models import Drivers
+from apps.drivers.models import Drivers, Vehicles
 from apps.travels.models import RequestTravel, Travel
 from apps.travels.exceptions import (
     DriverCantTakeRequestTravel,
@@ -35,6 +35,14 @@ class TakeRequestTravelApiViewTestCase(ViewTestCase):
     def setUp(self) -> None:
         super().setUp()
 
+        self.vehicle = Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
+
         app.conf.update(CELERY_TASK_ALWAYS_EAGER=True)
 
     def test_take_request_travel_api_view(self):
@@ -46,7 +54,7 @@ class TakeRequestTravelApiViewTestCase(ViewTestCase):
             "travels:travel_take_request_travel",
             kwargs={"request_travel_id": request_travel.id},
         )
-        payload = {"longitude": 0, "latitude": 0}
+        payload = {"longitude": 0, "latitude": 0, "vehicle_id": self.vehicle.id}
 
         res = self.client.post(
             path=url,
@@ -75,7 +83,7 @@ class TakeRequestTravelApiViewTestCase(ViewTestCase):
             "travels:travel_take_request_travel",
             kwargs={"request_travel_id": request_travel.id},
         )
-        payload = {"longitude": 0, "latitude": 0}
+        payload = {"longitude": 0, "latitude": 0, "vehicle_id": self.vehicle.id}
 
         res = self.client.post(
             path=url,

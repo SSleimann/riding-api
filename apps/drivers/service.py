@@ -47,3 +47,12 @@ def delete_vehicle_by_id_and_driver_id(vehicle_id: UUID, driver_id: UUID) -> Non
         Vehicles.objects.get(id=vehicle_id, driver__id=driver_id).delete()
     except Vehicles.DoesNotExist:
         raise VehicleDoesNotExistsException
+
+
+def get_vehicle_by_id(vehicle_id: UUID) -> Vehicles:
+    try:
+        vehicle = Vehicles.objects.select_related("driver").get(id=vehicle_id)
+    except Vehicles.DoesNotExist:
+        raise VehicleDoesNotExistsException
+
+    return vehicle

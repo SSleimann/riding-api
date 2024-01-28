@@ -15,8 +15,9 @@ from apps.travels.exceptions import (
     TravelDoesNotFound,
     CannotCancelThisTravel,
     CannotFinishThisTravel,
+    InvalidVehicleDriver,
 )
-from apps.drivers.service import get_driver_by_user_id
+from apps.drivers.service import get_driver_by_user_id, get_vehicle_by_id
 from apps.users.services import get_user_by_id
 from apps.users.models import User
 
@@ -54,9 +55,15 @@ def delete_request_travel_by_id_and_user_id(request_travel_id: int, user_id: UUI
         raise RequestTravelDoesNotFound
 
 
-def take_request_travel(request_travel_id: int, user_id: UUID, long: float, lat: float):
+def take_request_travel(
+    request_travel_id: int, user_id: UUID, long: float, lat: float, vehicle_id: UUID
+):
     driver_loc = Point(long, lat)
     driver = get_driver_by_user_id(user_id)
+    vehicle = get_vehicle_by_id(vehicle_id)
+
+    if vehicle.driver != driver:
+        raise InvalidVehicleDriver
 
     try:
         request_travel = RequestTravel.objects.select_related("user").get(
@@ -82,6 +89,7 @@ def take_request_travel(request_travel_id: int, user_id: UUID, long: float, lat:
                 request_travel=request_travel,
                 origin=request_travel.origin,
                 destination=request_travel.destination,
+                vehicle=vehicle,
             )
 
     except DatabaseError as e:
@@ -131,8 +139,8 @@ def finish_travel(travel_id: int, user_id: UUID) -> ConfirmationTravel:
 
     if travel.status != Travel.IN_COURSE:
         raise CannotFinishThisTravel
-    
-    confirmation_travel, _= ConfirmationTravel.objects.get_or_create(travel=travel)
+
+    confirmation_travel, _ = ConfirmationTravel.objects.get_or_create(travel=travel)
 
     try:
         if user_finisher.id == travel.user.id:

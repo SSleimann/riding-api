@@ -1,8 +1,13 @@
 from rest_framework_gis.serializers import ModelSerializer
 
-from rest_framework.serializers import Serializer, IntegerField, FloatField
+from rest_framework.serializers import (
+    Serializer,
+    UUIDField,
+    FloatField,
+)
 
 from apps.travels.models import Travel
+from apps.drivers.models import Vehicles
 
 
 class TravelSerializer(ModelSerializer):
@@ -14,3 +19,4 @@ class TravelSerializer(ModelSerializer):
 class TakeRequestTravelSerializer(Serializer):
     longitude = FloatField()
     latitude = FloatField()
+    vehicle_id = UUIDField()

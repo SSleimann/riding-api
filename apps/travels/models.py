@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now
 
-from apps.drivers.models import Drivers
+from apps.drivers.models import Drivers, Vehicles
 
 
 def request_travel_exp_time():
@@ -80,6 +80,13 @@ class Travel(models.Model):
         RequestTravel,
         on_delete=models.SET_NULL,
         related_name="travel",
+        null=True,
+        blank=True,
+    )
+    vehicle = models.ForeignKey(
+        Vehicles,
+        on_delete=models.SET_NULL,
+        related_name="travels",
         null=True,
         blank=True,
     )

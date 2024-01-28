@@ -23,8 +23,9 @@ from apps.travels.exceptions import (
     TravelDoesNotFound,
     CannotCancelThisTravel,
     CannotFinishThisTravel,
+    InvalidVehicleDriver,
 )
-from apps.drivers.models import Drivers
+from apps.drivers.models import Drivers, Vehicles
 from apps.users.exceptions import UserNotFound
 
 USER_MODEL = get_user_model()
@@ -147,6 +148,13 @@ class TakeRequestTravelTestCase(TestCase):
             is_active=True,
         )
         self.driver = Drivers.objects.create(user=self.user, is_active=True)
+        self.vehicle = Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
 
     def test_take_request_travel(self):
         origin = Point(0, 0)
@@ -165,7 +173,9 @@ class TakeRequestTravelTestCase(TestCase):
             user=passager, origin=origin, destination=dest
         )
 
-        travel = take_request_travel(request_travel.id, self.user.id, long=0, lat=0)
+        travel = take_request_travel(
+            request_travel.id, self.user.id, 0, 0, self.vehicle.id
+        )
 
         request_travel = RequestTravel.objects.get(id=request_travel.id)
 
@@ -184,7 +194,35 @@ class TakeRequestTravelTestCase(TestCase):
         )
 
         with self.assertRaises(DriverCantTakeRequestTravel):
-            take_request_travel(request_travel.id, self.user.id, long=0, lat=0)
+            take_request_travel(request_travel.id, self.user.id, 0, 0, self.vehicle.id)
+
+    def test_invalid_vehicle(self):
+        origin = Point(0, 0)
+        dest = Point(0, 0)
+
+        user2 = USER_MODEL.objects.create_user(
+            username="XXXXXXXaXXXX",
+            email="teaast@gmail.com",
+            password="teaastpass12345",
+            first_name="test",
+            last_name="test",
+            is_active=True,
+        )
+        driver2 = Drivers.objects.create(user=user2, is_active=True)
+        vehicle2 = Vehicles.objects.create(
+            driver=driver2,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
+
+        request_travel = RequestTravel.objects.create(
+            user=self.user, origin=origin, destination=dest
+        )
+
+        with self.assertRaises(InvalidVehicleDriver):
+            take_request_travel(request_travel.id, self.user.id, 0, 0, vehicle2.id)
 
 
 class GetTravelByIdTestCase(TestCase):
@@ -201,6 +239,13 @@ class GetTravelByIdTestCase(TestCase):
         self.request_travel = RequestTravel.objects.create(
             user=self.user, origin=Point(0, 0), destination=Point(0, 0)
         )
+        self.vehicle = Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
 
     def test_get_travel_by_id(self):
         travel = Travel.objects.create(
@@ -209,6 +254,7 @@ class GetTravelByIdTestCase(TestCase):
             request_travel=self.request_travel,
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
+            vehicle=self.vehicle,
         )
 
         retrieved_travel = get_travel_by_id(travel.id)
@@ -244,6 +290,13 @@ class CancelTravelTestCase(TestCase):
         self.request_travel = RequestTravel.objects.create(
             user=self.user, origin=Point(0, 0), destination=Point(0, 0)
         )
+        self.vehicle = Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
 
     def test_cancel_travel_user_id(self):
         travel = Travel.objects.create(
@@ -252,6 +305,7 @@ class CancelTravelTestCase(TestCase):
             request_travel=self.request_travel,
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
+            vehicle=self.vehicle,
         )
 
         cancelled_travel = cancel_travel(travel.id, self.user.id)
@@ -268,6 +322,7 @@ class CancelTravelTestCase(TestCase):
             request_travel=self.request_travel,
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
+            vehicle=self.vehicle,
         )
 
         cancelled_travel = cancel_travel(travel.id, self.driver.user.id)
@@ -285,6 +340,7 @@ class CancelTravelTestCase(TestCase):
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
             status=Travel.DONE,
+            vehicle=self.vehicle,
         )
 
         with self.assertRaises(CannotCancelThisTravel):
@@ -299,6 +355,7 @@ class CancelTravelTestCase(TestCase):
             request_travel=self.request_travel,
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
+            vehicle=self.vehicle,
         )
 
         user2 = USER_MODEL.objects.create_user(
@@ -327,6 +384,7 @@ class CancelTravelTestCase(TestCase):
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
             status=Travel.DONE,
+            vehicle=self.vehicle,
         )
 
         with self.assertRaises(UserNotFound):
@@ -356,6 +414,13 @@ class FinishTravelTestCase(TestCase):
         self.request_travel = RequestTravel.objects.create(
             user=self.user, origin=Point(0, 0), destination=Point(0, 0)
         )
+        self.vehicle = Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
 
     def test_finish_travel_user_id(self):
         travel = Travel.objects.create(
@@ -364,6 +429,7 @@ class FinishTravelTestCase(TestCase):
             request_travel=self.request_travel,
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
+            vehicle=self.vehicle,
         )
         conf_travel = ConfirmationTravel.objects.create(
             travel=travel,
@@ -386,6 +452,7 @@ class FinishTravelTestCase(TestCase):
             request_travel=self.request_travel,
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
+            vehicle=self.vehicle,
         )
         conf_travel = ConfirmationTravel.objects.create(
             travel=travel,
@@ -408,6 +475,7 @@ class FinishTravelTestCase(TestCase):
             request_travel=self.request_travel,
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
+            vehicle=self.vehicle,
         )
 
         confirmed_travel = finish_travel(travel.id, self.user.id)
@@ -425,6 +493,7 @@ class FinishTravelTestCase(TestCase):
             request_travel=self.request_travel,
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
+            vehicle=self.vehicle,
         )
 
         confirmed_travel = finish_travel(travel.id, self.user_driver.id)
@@ -443,6 +512,7 @@ class FinishTravelTestCase(TestCase):
             origin=self.request_travel.origin,
             destination=self.request_travel.destination,
             status=Travel.DONE,
+            vehicle=self.vehicle,
         )
 
         with self.assertRaises(CannotFinishThisTravel):

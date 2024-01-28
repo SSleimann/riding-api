@@ -11,6 +11,7 @@ from apps.drivers.service import (
     set_user_driver_inactive,
     get_driver_by_user_id,
     delete_vehicle_by_id_and_driver_id,
+    get_vehicle_by_id,
 )
 from apps.drivers.exceptions import (
     DriverDoesNotExistException,
@@ -157,3 +158,37 @@ class DeleteVehicleByIdAndDriverIdTestCase(TestCase):
     def test_delete_vehicle_with_invalid_driver(self):
         with self.assertRaises(VehicleDoesNotExistsException):
             delete_vehicle_by_id_and_driver_id(self.vehicle.id, uuid4())
+
+
+class GetVehicleByIdTestCase(TestCase):
+    def setUp(self):
+        self.user = USER_MODEL.objects.create_user(
+            username="te122stpepe",
+            email="trest21@gmail.com",
+            password="testpass12345",
+            first_name="test",
+            last_name="test",
+            is_active=True,
+        )
+        self.driver = Drivers.objects.create(user=self.user, is_active=True)
+        self.vehicle = Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
+
+    def test_get_vehicle_by_id(self):
+        vehicle = get_vehicle_by_id(self.vehicle.id)
+
+        self.assertEqual(vehicle.id, self.vehicle.id)
+        self.assertEqual(vehicle.driver.id, self.driver.id)
+        self.assertEqual(vehicle.plate_number, self.vehicle.plate_number)
+        self.assertEqual(vehicle.model, self.vehicle.model)
+        self.assertEqual(vehicle.year, self.vehicle.year)
+        self.assertEqual(vehicle.color, self.vehicle.color)
+
+    def test_get_vehicle_does_not_exist(self):
+        with self.assertRaises(VehicleDoesNotExistsException):
+            get_vehicle_by_id(uuid4())
