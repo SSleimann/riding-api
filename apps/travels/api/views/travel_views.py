@@ -10,8 +10,14 @@ from drf_spectacular.utils import extend_schema
 from apps.travels.api.serializers.travel_serializers import (
     TravelSerializer,
     TakeRequestTravelSerializer,
+    ConfirmationTravelSerializer,
 )
-from apps.travels.services import take_request_travel, get_travel_by_id, cancel_travel
+from apps.travels.services import (
+    take_request_travel,
+    get_travel_by_id,
+    cancel_travel,
+    finish_travel,
+)
 from apps.travels.tasks import send_email_to_users
 
 
@@ -72,3 +78,27 @@ class CancelTravelApiView(APIView):
         )
 
         return Response(TravelSerializer(travel).data, status=status.HTTP_200_OK)
+
+
+class FinishTravelApiView(APIView):
+    permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
+
+    @extend_schema(responses={200: ConfirmationTravelSerializer}, request=None)
+    def post(self, request, travel_id: int):
+        confirmation_travel = finish_travel(travel_id, request.user.id)
+        msg = (
+            "Your travel has been confirmed by {0}. Travel is done."
+            if confirmation_travel.check_driver and confirmation_travel.check_user
+            else "Your travel has been confirmed by {0}."
+        )
+
+        send_email_to_users.delay(
+            "Your travel has been confirmed!",
+            msg.format(request.user.get_full_name()),
+            [confirmation_travel.user.email, confirmation_travel.driver.user.email],
+        )
+
+        return Response(
+            ConfirmationTravelSerializer(confirmation_travel).data,
+            status=status.HTTP_200_OK,
+        )

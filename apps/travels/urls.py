@@ -11,6 +11,7 @@ from apps.travels.api.views.travel_views import (
     TakeRequestTravelApiView,
     TravelApiView,
     CancelTravelApiView,
+    FinishTravelApiView,
 )
 
 app_name = "travels"
@@ -38,5 +39,10 @@ urlpatterns = [
         "travel/cancel/<int:travel_id>/",
         CancelTravelApiView.as_view(),
         name="travel_cancel",
+    ),
+    path(
+        "travel/finish/<int:travel_id>/",
+        FinishTravelApiView.as_view(),
+        name="travel_finish",
     ),
 ]

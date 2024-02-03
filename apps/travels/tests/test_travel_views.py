@@ -5,7 +5,7 @@ from django.core import mail
 
 from apps.travels.tests.core import BaseViewTestCase
 from apps.drivers.models import Drivers, Vehicles
-from apps.travels.models import RequestTravel, Travel
+from apps.travels.models import RequestTravel, Travel, ConfirmationTravel
 from apps.travels.exceptions import (
     DriverCantTakeRequestTravel,
     TravelDoesNotFound,
@@ -30,11 +30,6 @@ class ViewTestCase(BaseViewTestCase):
             is_active=True,
         )
 
-
-class TakeRequestTravelApiViewTestCase(ViewTestCase):
-    def setUp(self) -> None:
-        super().setUp()
-
         self.vehicle = Vehicles.objects.create(
             driver=self.driver,
             plate_number="1234",
@@ -42,6 +37,11 @@ class TakeRequestTravelApiViewTestCase(ViewTestCase):
             year=1234,
             color="blue",
         )
+
+
+class TakeRequestTravelApiViewTestCase(ViewTestCase):
+    def setUp(self) -> None:
+        super().setUp()
 
         app.conf.update(CELERY_TASK_ALWAYS_EAGER=True)
 
@@ -107,8 +107,8 @@ class TravelApiViewTestCase(ViewTestCase):
             request_travel=request_travel,
             origin=request_travel.origin,
             destination=request_travel.destination,
+            vehicle=self.vehicle,
         )
-
         url = reverse_lazy("travels:travel_retrieve", kwargs={"travel_id": travel.id})
 
         res = self.client.get(
@@ -150,6 +150,7 @@ class CancelTravelApiView(ViewTestCase):
             request_travel=request_travel,
             origin=request_travel.origin,
             destination=request_travel.destination,
+            vehicle=self.vehicle,
         )
 
         url = reverse_lazy("travels:travel_cancel", kwargs={"travel_id": travel.id})
@@ -192,6 +193,7 @@ class CancelTravelApiView(ViewTestCase):
             request_travel=request_travel,
             origin=request_travel.origin,
             destination=request_travel.destination,
+            vehicle=self.vehicle,
         )
 
         url = reverse_lazy("travels:travel_cancel", kwargs={"travel_id": travel.id})
@@ -204,3 +206,154 @@ class CancelTravelApiView(ViewTestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(res.data["detail"], CannotCancelThisTravel.default_detail)
         self.assertEqual(len(mail.outbox), 0)
+
+
+class FinishTravelApiViewTestCase(ViewTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+
+        app.conf.update(CELERY_TASK_ALWAYS_EAGER=True)
+
+    def test_finish_travel_user(self):
+        driver2 = Drivers.objects.create(user=self.user2)
+
+        request_travel = RequestTravel.objects.create(
+            user=self.user, origin=Point(0, 0), destination=Point(0, 0)
+        )
+
+        travel = Travel.objects.create(
+            user=request_travel.user,
+            driver=driver2,
+            request_travel=request_travel,
+            origin=request_travel.origin,
+            destination=request_travel.destination,
+            vehicle=self.vehicle,
+        )
+
+        url = reverse_lazy("travels:travel_finish", kwargs={"travel_id": travel.id})
+
+        res = self.client.post(
+            path=url,
+            headers={"Authorization": self.authorization},
+        )
+
+        conf_travel = ConfirmationTravel.objects.get(travel=travel)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["id"], conf_travel.id)
+        self.assertEqual(res.data["travel"], travel.id)
+        self.assertEqual(res.data["user"], self.user.id)
+        self.assertEqual(res.data["driver"], driver2.id)
+        self.assertEqual(res.data["check_user"], True)
+        self.assertEqual(res.data["check_driver"], False)
+        self.assertNotEqual(Travel.objects.get(id=travel.id).status, Travel.DONE)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertNotIn("Travel is done", mail.outbox[0].body)
+
+    def test_finish_travel_user_complete(self):
+        driver2 = Drivers.objects.create(user=self.user2)
+
+        request_travel = RequestTravel.objects.create(
+            user=self.user, origin=Point(0, 0), destination=Point(0, 0)
+        )
+
+        travel = Travel.objects.create(
+            user=request_travel.user,
+            driver=driver2,
+            request_travel=request_travel,
+            origin=request_travel.origin,
+            destination=request_travel.destination,
+            vehicle=self.vehicle,
+        )
+
+        conf_travel = ConfirmationTravel.objects.create(
+            travel=travel, user=travel.user, driver=driver2, check_driver=True
+        )
+
+        url = reverse_lazy("travels:travel_finish", kwargs={"travel_id": travel.id})
+
+        res = self.client.post(
+            path=url,
+            headers={"Authorization": self.authorization},
+        )
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["id"], conf_travel.id)
+        self.assertEqual(res.data["travel"], travel.id)
+        self.assertEqual(res.data["user"], self.user.id)
+        self.assertEqual(res.data["driver"], driver2.id)
+        self.assertEqual(res.data["check_user"], True)
+        self.assertEqual(res.data["check_driver"], True)
+        self.assertEqual(Travel.objects.get(id=travel.id).status, Travel.DONE)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Travel is done", mail.outbox[0].body)
+
+    def test_finish_travel_driver(self):
+        request_travel = RequestTravel.objects.create(
+            user=self.user2, origin=Point(0, 0), destination=Point(0, 0)
+        )
+
+        travel = Travel.objects.create(
+            user=request_travel.user,
+            driver=self.driver,
+            request_travel=request_travel,
+            origin=request_travel.origin,
+            destination=request_travel.destination,
+            vehicle=self.vehicle,
+        )
+
+        url = reverse_lazy("travels:travel_finish", kwargs={"travel_id": travel.id})
+
+        res = self.client.post(
+            path=url,
+            headers={"Authorization": self.authorization},
+        )
+
+        conf_travel = ConfirmationTravel.objects.get(travel=travel)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["id"], conf_travel.id)
+        self.assertEqual(res.data["travel"], travel.id)
+        self.assertEqual(res.data["user"], self.user2.id)
+        self.assertEqual(res.data["driver"], self.driver.id)
+        self.assertEqual(res.data["check_user"], False)
+        self.assertEqual(res.data["check_driver"], True)
+        self.assertNotEqual(Travel.objects.get(id=travel.id).status, Travel.DONE)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertNotIn("Travel is done", mail.outbox[0].body)
+
+    def test_finish_travel_driver_complete(self):
+        request_travel = RequestTravel.objects.create(
+            user=self.user2, origin=Point(0, 0), destination=Point(0, 0)
+        )
+
+        travel = Travel.objects.create(
+            user=request_travel.user,
+            driver=self.driver,
+            request_travel=request_travel,
+            origin=request_travel.origin,
+            destination=request_travel.destination,
+            vehicle=self.vehicle,
+        )
+
+        conf_travel = ConfirmationTravel.objects.create(
+            travel=travel, user=travel.user, driver=self.driver, check_user=True
+        )
+
+        url = reverse_lazy("travels:travel_finish", kwargs={"travel_id": travel.id})
+
+        res = self.client.post(
+            path=url,
+            headers={"Authorization": self.authorization},
+        )
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["id"], conf_travel.id)
+        self.assertEqual(res.data["travel"], travel.id)
+        self.assertEqual(res.data["user"], self.user2.id)
+        self.assertEqual(res.data["driver"], self.driver.id)
+        self.assertEqual(res.data["check_user"], True)
+        self.assertEqual(res.data["check_driver"], True)
+        self.assertEqual(Travel.objects.get(id=travel.id).status, Travel.DONE)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Travel is done", mail.outbox[0].body)

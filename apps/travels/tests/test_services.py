@@ -433,8 +433,10 @@ class FinishTravelTestCase(TestCase):
         )
         conf_travel = ConfirmationTravel.objects.create(
             travel=travel,
-            user=None,
+            user=self.user,
             driver=self.driver,
+            check_user=False,
+            check_driver=True,
         )
 
         confirmed_travel = finish_travel(travel.id, self.user.id)
@@ -457,7 +459,9 @@ class FinishTravelTestCase(TestCase):
         conf_travel = ConfirmationTravel.objects.create(
             travel=travel,
             user=self.user,
-            driver=None,
+            driver=self.driver,
+            check_user=True,
+            check_driver=False,
         )
 
         confirmed_travel = finish_travel(travel.id, self.user_driver.id)
@@ -483,7 +487,9 @@ class FinishTravelTestCase(TestCase):
         self.assertNotEqual(confirmed_travel.travel.status, Travel.DONE)
         self.assertEqual(confirmed_travel.user, self.user)
         self.assertEqual(confirmed_travel.travel.id, travel.id)
-        self.assertEqual(confirmed_travel.driver, None)
+        self.assertEqual(confirmed_travel.driver, self.driver)
+        self.assertTrue(confirmed_travel.check_user)
+        self.assertFalse(confirmed_travel.check_driver)
         self.assertEqual(ConfirmationTravel.objects.count(), 1)
 
     def test_finish_travel_first_confirmation_driver_id(self):
@@ -501,7 +507,9 @@ class FinishTravelTestCase(TestCase):
         self.assertNotEqual(confirmed_travel.travel.status, Travel.DONE)
         self.assertEqual(confirmed_travel.driver, self.driver)
         self.assertEqual(confirmed_travel.travel.id, travel.id)
-        self.assertEqual(confirmed_travel.user, None)
+        self.assertEqual(confirmed_travel.user, self.user)
+        self.assertTrue(confirmed_travel.check_driver)
+        self.assertFalse(confirmed_travel.check_user)
         self.assertEqual(ConfirmationTravel.objects.count(), 1)
 
     def test_cant_finish_travel(self):

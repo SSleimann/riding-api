@@ -78,17 +78,13 @@ class Travel(models.Model):
     )
     request_travel = models.OneToOneField(
         RequestTravel,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="travel",
-        null=True,
-        blank=True,
     )
     vehicle = models.ForeignKey(
         Vehicles,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="travels",
-        null=True,
-        blank=True,
     )
 
     origin = models.PointField(srid=4326, geography=True)
@@ -116,18 +112,16 @@ class ConfirmationTravel(models.Model):
     )
     user = models.ForeignKey(
         get_user_model(),
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="confirmations",
-        null=True,
-        blank=True,
     )
     driver = models.ForeignKey(
         Drivers,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="confirmations",
-        null=True,
-        blank=True,
     )
+    check_user = models.BooleanField(default=False)
+    check_driver = models.BooleanField(default=False)
 
     created_time = models.DateTimeField(default=now)
 

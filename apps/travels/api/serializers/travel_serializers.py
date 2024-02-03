@@ -6,7 +6,7 @@ from rest_framework.serializers import (
     FloatField,
 )
 
-from apps.travels.models import Travel
+from apps.travels.models import Travel, ConfirmationTravel
 from apps.drivers.models import Vehicles
 
 
@@ -20,3 +20,9 @@ class TakeRequestTravelSerializer(Serializer):
     longitude = FloatField()
     latitude = FloatField()
     vehicle_id = UUIDField()
+
+
+class ConfirmationTravelSerializer(ModelSerializer):
+    class Meta:
+        model = ConfirmationTravel
+        fields = "__all__"

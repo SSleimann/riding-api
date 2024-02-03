@@ -140,13 +140,15 @@ def finish_travel(travel_id: int, user_id: UUID) -> ConfirmationTravel:
     if travel.status != Travel.IN_COURSE:
         raise CannotFinishThisTravel
 
-    confirmation_travel, _ = ConfirmationTravel.objects.get_or_create(travel=travel)
+    confirmation_travel, _ = ConfirmationTravel.objects.get_or_create(
+        travel=travel, driver=travel.driver, user=travel.user
+    )
 
     try:
         if user_finisher.id == travel.user.id:
-            confirmation_travel.user = user_finisher
-        elif travel.driver.id == user_finisher.drivers.id:
-            confirmation_travel.driver = user_finisher.drivers
+            confirmation_travel.check_user = True
+        elif user_finisher.drivers.id == travel.driver.id:
+            confirmation_travel.check_driver = True
         else:
             raise CannotFinishThisTravel
 
@@ -155,7 +157,7 @@ def finish_travel(travel_id: int, user_id: UUID) -> ConfirmationTravel:
     except User.drivers.RelatedObjectDoesNotExist:
         raise CannotFinishThisTravel
 
-    if confirmation_travel.user is not None and confirmation_travel.driver is not None:
+    if confirmation_travel.check_user and confirmation_travel.check_driver:
         travel.status = Travel.DONE
         travel.save()
 
