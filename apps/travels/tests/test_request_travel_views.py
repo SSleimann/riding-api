@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from apps.travels.tests.core import BaseViewTestCase
-from apps.drivers.models import Drivers
+from apps.drivers.models import Drivers, Vehicles
 from apps.travels.models import RequestTravel
 from apps.travels.exceptions import RequestTravelDoesNotFound
 
@@ -16,6 +16,13 @@ class ViewTestCase(BaseViewTestCase):
         super().setUp()
 
         self.driver = Drivers.objects.create(user=self.user, is_active=True)
+        self.vehicle = Vehicles.objects.create(
+            driver=self.driver,
+            plate_number="1234",
+            model="asas",
+            year=1234,
+            color="blue",
+        )
 
 
 class ListRequestTravelApiViewTestCase(ViewTestCase):

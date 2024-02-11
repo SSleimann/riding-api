@@ -18,11 +18,16 @@ from apps.travels.services import (
     cancel_travel,
     finish_travel,
 )
+from apps.travels.permissions import IsDriverActivePermission
 from apps.travels.tasks import send_email_to_users
 
 
 class TakeRequestTravelApiView(APIView):
-    permission_classes = (IsAuthenticated, TokenHasReadWriteScope)
+    permission_classes = (
+        IsAuthenticated,
+        TokenHasReadWriteScope,
+        IsDriverActivePermission,
+    )
 
     @extend_schema(
         request=TakeRequestTravelSerializer,

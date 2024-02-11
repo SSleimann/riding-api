@@ -16,7 +16,7 @@ from drf_spectacular.utils import extend_schema
 
 from django_filters.utils import translate_validation
 
-from apps.travels.permissions import IsDriverPermission, IsOwnerPermission
+from apps.travels.permissions import IsDriverActivePermission, IsOwnerPermission
 from apps.travels.models import RequestTravel
 from apps.travels.api.serializers.request_travel_serializer import (
     RequestTravelSerializer,
@@ -33,7 +33,11 @@ from apps.travels.services import (
 
 
 class ListRequestTravelApiView(GenericAPIView):
-    permission_classes = (IsAuthenticated, TokenHasReadWriteScope, IsDriverPermission)
+    permission_classes = (
+        IsAuthenticated,
+        TokenHasReadWriteScope,
+        IsDriverActivePermission,
+    )
     filter_backends = (RequestTravelDistanceToRadiusFilter,)
 
     @extend_schema(
